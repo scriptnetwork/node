@@ -1,19 +1,19 @@
 all: _targets/conf_hash
 
 _targets/conf_hash:
-	@bin/build.sh
+	@dotool__build
 
 deploy: _targets/conf_hash
-	dotool__deploy.sh _targets
+	dotool__deploy _targets
 
 deploy_dryrun: _targets/conf_hash
-	dotool_deploy.sh --dryrun _targets
+	dotool_deploy --dryrun _targets
 
 deploy_notest: _targets/conf_hash
-	dotool__deploy.sh --omit-test _targets
+	dotool__deploy --omit-test _targets
 
 deploy_notest_dryrun: _targets/conf_hash
-	dotool__deploy.sh --omit-test --dry_run _targets
+	dotool__deploy --omit-test --dry_run _targets
 
 install: deploy
 
