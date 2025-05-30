@@ -1,0 +1,4 @@
+export enum ENetwork {
+    SCRIPT_TESTNET = 'SCRIPT_TESTNET',
+    SCRIPT_MAINNET = 'SCRIPT_MAINNET',
+}

@@ -1,0 +1,40 @@
+@import "../../../styles/colors.scss";
+
+.modal {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba($color: $black, $alpha: 0.7);
+
+    &_container {
+        background-color: $dark-grey-700;
+        border-radius: 20px;
+        max-width: 700px;
+        width: 100%;
+        min-height: 300px;
+        padding: 36px 34px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+
+        &>button:first-child {
+            padding: 0;
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &>div {
+            width: 100%;
+        }
+    }
+}

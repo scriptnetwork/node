@@ -1,0 +1,1895 @@
+#!/bin/bash
+
+help() {
+    cat << EOF
+stvtool - Script-Network user tool - v1.11
+    Network: ${curnetwork}
+    System monotonic version: ${monotonic_version}
+
+EOF
+    help__nodes
+    help__underlying_programs
+    cat << EOF
+Usage:
+stvtool [options] <command>
+options:
+     -a ........................................... Advanced user/extended output.
+     -batch ....................................... Non-interactive mode for automation.
+                                                    Commands produce parse-fiendly output.
+
+<command>:
+--- General
+    * docs ........................................ Show information related to documentation and logs
+    * run <stv file>............................... Programmable money. run program.
+
+--- Local
+    * ip4 ......................................... Print LAN and WAN IPv4 addresses.
+    * endpoints ................................... List private services and ports, and public URLs
+    * scp_info .................................... Info for transferring files in and out of this node.
+    * test ........................................ Run tests.
+    * take_snapshot ............................... Create a snapshot block.
+    * fetch_snapshot .............................. Obtains a snapshot block from other node.
+    * gui ......................................... Enable/disable GUI (ngix)
+
+--- Network
+    * [-a] status ................................. L1 Status, parameters and node public key.
+    * peers ....................................... Peers connected to the node on the network.
+    * height ...................................... Show current, finalized, snapshot and explorer heights
+
+EOF
+    help__wallet
+    help__faucet
+    help__licensing
+    help__staking
+
+    if [[ ! -z "${curnode}" ]]; then
+        echo "    Current node: ${curnode}"
+    fi
+    cat << EOF
+    Network: ${curnetwork}
+
+EOF
+
+}
+
+help__nodes() {
+    if [ $nnodes -lt 2 ]; then
+        echo
+        return
+    fi
+    cat << EOF
+    Current node: ${curnode}
+
+--- Installed Nodes: $(libstvtool__print_nodes "")
+    * chnode <name> ............................... Switch node.
+
+EOF
+}
+
+help__underlying_programs() {
+    cat << EOF
+--- Underlying programs:
+    * script (L1 governance / blockchain)
+      ${script}
+
+    * scriptcli (local wallet)
+      ${scriptcli}
+
+EOF
+}
+
+help__wallet() {
+    cat << EOF
+--- Wallet keys
+    * keys ........................................ List wallet public keys.
+    * keysp ....................................... List wallet keys including private keys.
+    * new_key ..................................... Generate and store a new key pair.
+    * import_key <hex-64>.......................... Generate and store a new key pair from a given private key.
+    * backup ...................................... Produce a tgz with gov and wallet keys.
+
+--- Tokens. SCPT and SPAY.
+    * balance ..................................... Token Balances. Defaults to node address balance.
+        [--address <address>] ..................... The address to show balance for.
+    * transfer .................................... Move tokens
+        --from <address> .......................... Source address.
+        --to <address> ............................ Recipient address.
+        --scpt <amount> ........................... SCPT amount 0.000000000
+        --spay <amount> ........................... SPAY amount 0.000000000
+
+EOF
+}
+
+help__faucet() {
+    if [ "${curnetwork}" != "testnet" ]; then
+        return
+    fi
+    cat << EOF
+--- Faucet
+    * faucet ...................................... Command for receiving free SCPT and SPAY. Options:
+          (default node address: $node_address (this node))
+        --recipient <address> ..................... Recipient address
+        --lightning ............................... Obtain funds to run a lightning node.
+        --validator ............................... Obtain funds to run a validator node.
+
+EOF
+}
+
+help__licensing() {
+    cat << EOF
+--- Node types and licensing
+    * buy_license ................................. Purchase license to run a validator node.
+        --for <address> ........................... The address to buy the license for.
+        --from <address> .......................... The address to pay license fee from.
+        --referral <address> ...................... The referral address.
+        --lightning ............................... Buy a lightning license.
+        --validator ............................... Buy a validator license.
+    * redeem ...................................... Redeem easeFlow purchase.
+          (Default recipient address: $node_address (this node))
+        --recipient <address> ..................... Recipient address for stake reward.
+    * print_license ............................... Print the license.
+          (Default node address: $node_address (this node))
+        --all ....................................  Print all licenses.
+        --address <address> ..................... ..The address to print license for.
+    * fetch_licenses .............................. Download the licensee database.
+    * print_referral .............................. Print the referral message to share.
+
+EOF
+}
+
+help__staking() {
+    cat << EOF
+--- Staking
+    * stake ....................................... Command for Staking. Options:
+        --lightning ............................... Stake 20K SCPT. Become a Lightning node.
+        --validator ............................... Stake 1M SCPT. Become a Validator node.
+        --amount .................................. Stake amount other than default amounts.
+    * delegate .................................... Stake other nodes.
+        --delegate_to ............................. The node address to delegate to.
+        --amount .................................. SCPT amount to stake on delegated node.
+    * node_status ................................. Node status summary.
+        --address <address> ....................... The address to check status for.
+
+EOF
+}
+
+explorer_progress_height="0"
+
+status() {
+    status0 > /dev/null
+    if [[ $batch -eq 0 ]]; then
+        cat << EOF
+chain_signature="${chain_id}-${genesis_block_hash}"
+node_address="${address}"
+node_address_b58="${address_b58}"
+peer_id="${peer_id}"
+current_height="${current_height}"
+explorer_progress_height="${explorer_progress_height}"
+EOF
+    else
+        cat << EOF
+chain_signature ${chain_id}-${genesis_block_hash}
+node_address ${address}
+node_address_b58 ${address_b58}
+peer_id ${peer_id}
+current_height ${current_height}
+explorer_progress_height ${explorer_progress_height}
+EOF
+    fi
+}
+
+load_status() { #TODO improve use eval or declare
+    status > /tmp/rrut7685
+    . /tmp/rrut7685
+    rm -f /tmp/rrut7685
+}
+
+update_balance() {
+    local addr=$1
+    local args=$(cat << EOF | jq -c
+{
+  "jsonrpc": "2.0",
+  "method": "script.GetAccount",
+  "params": [
+    {
+      "address": "${addr}"
+    }
+  ],
+  "id": 1
+}
+EOF
+)
+    local output=$(libstvtool__query_gov "$args")
+    if [ -z "$output" ] || [ "$output" == "null" ] || [ "$(echo "$output" | jq -r '.result.coins')" == "null" ]; then
+        balance__SCPT=0
+        balance__SPAY=0
+    else
+        echo $output | jq -r '.result.coins | to_entries[] | "\(.key) \(.value)"' | while read key value; do
+            converted_value=$(libstvtool__convert_from_wei $value)
+            # Update variables based on the key
+            if [ "$key" == "scptwei" ]; then
+                balance__SCPT=$converted_value
+            elif [ "$key" == "spaywei" ]; then
+                balance__SPAY=$converted_value
+            fi
+        done
+    fi
+}
+
+user__backup() {
+    local pfxname="keys_${node_address}_${ss_network}_${ss_instance}"
+    local dirname="${pfxname}_$(date +%Y%m%d%H%M%S)"
+    if [[ $batch -eq 0 ]]; then
+        echo "Deleting previous backup files in /tmp"
+       find /tmp -maxdepth=1 -type f -name="${pfxname}*.tgz"
+    fi
+    rm -f /tmp/${pfxname}*.tgz
+    mkdir -p ${dirname}/gov
+    if [[ $batch -eq 0 ]]; then
+        echo "Copying gov key from ${gov__configdir}/key/"
+    fi
+    cp ${gov__configdir}/key/plain/* ${dirname}/gov/
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 50942 gov key not found at ${gov__configdir}/key/plain/*"
+        exit 1
+    fi
+    cp ${gov__configdir}/config.yaml ${dirname}/gov/
+    mkdir -p ${dirname}/wallet
+    if [[ $batch -eq 0 ]]; then
+        echo "Copying wallet keys from ${wallet__configdir}/keys/"
+    fi
+    cp ${wallet__configdir}/keys/plain/* ${dirname}/wallet/ 2>/dev/null
+    tar -czf ${dirname}.tgz ${dirname}
+    rm -r ${dirname}
+    mv ${dirname}.tgz /tmp/
+    if [[ $batch -eq 0 ]]; then
+        echo "Backup file available at /tmp/${dirname}.tgz."
+    fi
+    lanip=$(libstvtool__get_lan_ip4)
+    wanip=$(libstvtool__get_wan_ip4)
+    if [[ $batch -eq 0 ]]; then
+        echo "============================================================================================="
+        echo "Backup file is ready for download:"
+        echo "Retrieve from remote computer using either command:"
+        echo "from LAN: scp root@${lanip}:/tmp/${dirname}.tgz ."
+        echo "from WAN: scp root@${wanip}:/tmp/${dirname}.tgz ."
+        echo "Restore directory (gov key): ${gov__configdir}"
+        echo "Restore directory (wallet keys): ${wallet__configdir}"
+        echo "============================================================================================="
+    else
+        echo "local_file /tmp/${dirname}.tgz"
+        echo "scp_lan scp root@${lanip}:/tmp/${dirname}.tgz ."
+        echo "scp_wan scp root@${wanip}:/tmp/${dirname}.tgz ."
+        echo "local_restore_dir_gov ${gov__configdir}"
+        echo "local_restore_dir_wallet ${wallet__configdir}"
+    fi
+}
+
+user__endpoints() {
+    libstvtool__print_local_info
+}
+
+user__test() {
+    script_tv__test.sh
+}
+
+user__balance() {
+    update_balance "${input__address}"
+    if [[ $batch -eq 0 ]]; then
+        echo "Address ${input__address}"
+        echo "    SCPT: ${balance__SCPT}"
+        echo "    SPAY: ${balance__SPAY}"
+    else
+        echo "address ${input__address}"
+        echo "scpt ${balance__SCPT}"
+        echo "spay ${balance__SPAY}"
+    fi
+}
+
+is_gui_enabled() {
+    if [[ -f /var/${system_unix_name}/svc/disabled/nginx ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+#create_SSL_cert() {
+#    local domain=$1
+#    local ssl_certs="${secrets_root__abs}/ssl/certs"
+#    local cert_file=${domain}.crt
+#    local key_file=${domain}.key
+#    cat << EOF
+#ssl_certs="${secrets_root__abs}/ssl/certs"
+#cert_file=${domain}.crt
+#key_file=${domain}.key
+#
+#EOF
+#    libcrypto__create_ssl_cert "${domain}" "${domain}" "${ssl_certs}/${cert_file}" "${ssl_certs}/${key_file}"
+#    if [[ ! -f ${ssl_certs}/${cert_file} ]]; then
+#        >&2 echo "KO 20196 ${cert_file} has not been produced."
+#        exit 1
+#    fi
+#}
+
+
+gui__enable() {
+    local gdir="${gov__configdir}"
+    local ts="$(date +%Y%m%d%H%M%S)"
+    if [ -z "${address_b58}" ]; then
+        >&2 echo "KO 33927 node address not available"
+        exit 1
+    fi
+    local ca_nodedomain="p2p.${domain}"  #p2p.script.tv
+    local nodedomain="sn-${address_b58}.${ca_nodedomain}" #p2p.script.tv
+#    local nodedomain="$(get_valid_host).${ca_nodedomain}" #p2p.script.tv
+
+    if [[ ! -f etc/ssl ]]; then
+        gen_sslcert ${nodedomain} ${ca_nodedomain}
+    fi
+}
+
+gui__disable() {
+    mkdir -p /var/${system_unix_name}/svc/disabled
+    touch /var/${system_unix_name}/svc/disabled/nginx
+}
+
+user__poo() { #proof of ownership
+    make_poo
+}
+
+user__gui() {
+    cmd=$1
+    n=1
+    if [[ -z "$cmd" ]]; then
+        cmd="status"
+    fi
+    if [[ $cmd == "status" ]]; then
+        if is_gui_enabled; then
+            echo "gui enabled"
+        else
+            echo "gui disabled"
+        fi
+        exit 0
+    fi
+    if [[ $cmd == "disable" ]]; then
+        if ! is_gui_enabled; then
+            >&2 echo "gui is already disabled."
+            exit 0
+        fi
+        gui__disable
+        exit 0
+    fi
+    if [[ $cmd == "enable" ]]; then
+        if is_gui_enabled; then
+            >&2 echo "gui is already enabled."
+            exit 0
+        fi
+        gui__enable
+        exit 0
+    fi
+}
+
+query_faucet() {
+    local addr=$1
+    local amount=$2
+    addr=$(echo "$addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    if [ -z "$amount" ]; then
+        req="{\"receiver\": \"${addr}\"}"
+    else
+        req="{\"receiver\": \"${addr}\", \"amount\": \"${amount}\"}"
+    fi
+    local output=$(libstvtool__query_faucet "$req")
+    local hash=$(echo "$output" | jq -r '.data.result.hash')
+    if [[ -n "$hash" && "$hash" != "null" ]]; then
+        if [[ $batch -eq 0 ]]; then
+            echo "Tx $hash"
+            echo "Explorer link: ${fe_explorer_URL}/txs/${hash}"
+            echo "Funds will arrive in seconds, check balance."
+        else
+            echo "tx $hash"
+            echo "explorer_url ${fe_explorer_URL}/txs/${hash}"
+        fi
+    else
+        echo "KO 86911 Failed to query faucet. $output"
+    fi
+}
+
+query_faucet__local() {
+    local addr=$1
+    addr=$(echo "$addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    $curl -X POST -d "receiver=${addr}" ${faucet_endpoint__local}
+}
+
+user__status() {
+    if [[ $input__a -eq 0 ]]; then
+        status
+    else
+        status0
+    fi
+}
+
+user__height() {
+    status0 | grep height
+}
+
+
+user__keys() {
+    libstvtool__print_keys
+}
+
+user__keysp() {
+    libstvtool__print_keysp
+}
+
+user__new_key() {
+    libstvtool__new_key
+}
+
+user__import_key() {
+    local sk=$1
+    let n=1
+    libstvtool__import_key $sk
+}
+
+stake_lightning() {
+    local addr=$1
+    local amount=$2
+    local seq=$(libstvtool__get_sequence $addr)
+    output=$($scriptcli query lightning info)
+    summary=$(echo "$output" | jq -r '.Summary')
+    summary=$(echo "$summary" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    result=$($scriptcli tx deposit --chain=${chain_id} --source=${addr} --holder=${summary} --stake=${amount} --purpose=1 --seq=$seq)
+    if echo "$result" | grep -q "Successfully broadcasted transaction"; then
+        txhash=$(echo "$result" | grep -oP 'TxHash:0x[0-9a-fA-F]+' | awk -F':' '{print $2}')
+        if [ -n "$txhash" ]; then
+            if [[ $batch -eq 0 ]]; then
+                echo "Transaction broadcast was successful."
+                echo "TxHash: $txhash"
+                echo "Link to transaction: ${fe_explorer_URL}/txs/${txhash}"
+            else
+                echo "tx $txhash"
+                echo "explorer_url ${fe_explorer_URL}/txs/${txhash}"
+            fi
+        else
+            echo "KO 85796 TxHash not found in the response."
+
+        fi
+    else
+        echo "KO 85241 Staking failed."
+        echo "$result"
+    fi
+}
+
+stake_validator() {
+    local addr=$1
+    local amount=$2
+    local seq=$(libstvtool__get_sequence $addr)
+    addr=$(echo "$addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    result=$($scriptcli tx deposit --chain=${chain_id} --source=${addr} --holder=${addr} --stake=${amount} --purpose=0 --seq=$seq)
+    if echo "$result" | grep -q "Successfully broadcasted transaction"; then
+        txhash=$(echo "$result" | grep -oP 'TxHash:0x[0-9a-fA-F]+' | awk -F':' '{print $2}')
+        if [ -n "$txhash" ]; then
+            if [[ $batch -eq 0 ]]; then
+                echo "Transaction broadcast was successful."
+                echo "TxHash: $txhash"
+                echo "Follow the transaction: ${fe_explorer_URL}/txs/${txhash}"
+            else
+                echo "tx $txhash"
+                echo "explorer_url ${fe_explorer_URL}/txs/${txhash}"
+            fi
+        else
+            echo "KO 85796 TxHash not found in the response."
+
+        fi
+    else
+        echo "KO 85241 Staking failed."
+        echo "$result"
+    fi
+}
+
+withdraw_lightning() {
+    local addr=$1
+    local amount=$2
+    output=$($scriptcli query lightning info)
+    local seq=$(libstvtool__get_sequence $addr)
+    summary=$(echo "$output" | jq -r '.Summary')
+    summary=$(echo "$summary" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    $scriptcli tx withdraw --chain=${chain_id} --source=${addr} --holder=${addr} --purpose=1 --seq=$seq
+}
+
+withdraw_validator() {
+    local addr=$1
+    local amount=$2
+    local seq=$(libstvtool__get_sequence $addr)
+    addr=$(echo "$addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+
+    $scriptcli tx withdraw --chain=${chain_id} --source=${addr} --holder=${addr} --purpose=0 --seq=$seq
+}
+
+delegate_validator() {
+    local to_addr=$1
+    local from_addr=$2
+    local amount=$3
+    to_addr=$(echo "$to_addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    from_addr=$(echo "$from_addr" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    local seq=$(libstvtool__get_sequence $from_addr)
+    result=$($scriptcli tx deposit --chain=${chain_id} --source=${from_addr} --holder=${to_addr} --stake=${amount} --purpose=0 --seq=$seq)
+    if echo "$result" | grep -q "Successfully broadcasted transaction"; then
+        txhash=$(echo "$result" | grep -oP 'TxHash:0x[0-9a-fA-F]+' | awk -F':' '{print $2}')
+        if [ -n "$txhash" ]; then
+            if [[ $batch -eq 0 ]]; then
+                echo "Transaction broadcast was successful."
+                echo "TxHash: $txhash"
+                echo "Follow the transaction: ${fe_explorer_URL}/txs/${txhash}"
+            else
+                echo "tx $txhash"
+                echo "explorer_url ${fe_explorer_URL}/txs/${txhash}"
+            fi
+        else
+            echo "KO 85796 TxHash not found in the response."
+
+        fi
+    else
+        echo "KO 85242 Delegation failed."
+        echo "$result"
+    fi
+}
+
+user__hotfix() {
+    wget https://download.script.tv/files/hotfix/stvtool -O bin/stvtool
+    echo "upgraded v1.5.1"
+    exit 0
+}
+
+
+user__take_snapshot() {
+    local atheight=$1
+    if [[ -f /tmp/write__mk_snapshot.lock ]]; then
+        sleep 5
+        exit 0
+    fi
+    touch /tmp/write__mk_snapshot.lock
+
+    url="${gov__api_URL__local}"
+    cfgdir="${gov__configdir}"
+
+    if [[ -z "$stheight" ]]; then
+        atheight=$(curl -s -X POST ${url} -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"script.GetStatus","params":{}, "id":"1"}' | jq -r '.result.latest_finalized_block_height')
+        if [[ -z "$atheight" || "$atheight" == "null" ]]; then
+          echo "KO 70293 Failed to fetch current height"
+          rm -f /tmp/write__mk_snapshot.lock
+          exit 1
+        fi
+    else
+        let n=1
+    fi
+    # make snapshot
+    file="${cfgdir}/backup/snapshot/$(curl -s -X POST ${url} -H "Content-Type: application/json" -d "{\"jsonrpc\":\"2.0\",\"method\":\"script.BackupSnapshot\",\"params\":{\"config\":\"${cfgdir}\", \"height\":${atheight}, \"version\":4}, \"id\":\"1\"}" | jq -r '.result.snapshot_file')"
+    echo $file
+    if [[ ! -f "$file" ]]; then
+        echo "KO 10192"
+        rm -f /tmp/write__mk_snapshot.lock
+        exit 1
+    fi
+    rm -f /tmp/write__mk_snapshot.lock
+
+    lanip=$(libstvtool__get_lan_ip4)
+    wanip=$(libstvtool__get_wan_ip4)
+    if [[ $batch -eq 0 ]]; then
+        echo "============================================================================================="
+        echo "Retrieve from remote computer using either command:"
+        echo "from LAN: scp root@${lanip}:${file} ."
+        echo "from WAN: scp root@${wanip}:${file} ."
+        echo "============================================================================================="
+    else
+        echo "local_file ${file}"
+        echo "scp_lan scp root@${lanip}:${file} ."
+        echo "scp_wan scp root@${wanip}:${file} ."
+    fi
+
+    exit 0
+}
+
+user__scp_info() {
+    lanip=$(libstvtool__get_lan_ip4)
+    wanip=$(libstvtool__get_wan_ip4)
+    if [[ $batch -eq 0 ]]; then
+        echo "============================================================================================="
+        echo "LAN: <- fetch file from LAN: scp root@${lanip}:<abs_file> ."
+        echo "     -> push file from LAN scp <file> root@${lanip}:<dir/>"
+        echo ""
+        echo "WAN: <- fetch file from WAN: scp root@${wanip}:<abs_file> ."
+        echo "     -> push file from LAN scp <file> root@${wanip}:<dir/>"
+        echo "============================================================================================="
+    else
+        echo "local_file <abs_file>"
+        echo "scp_lan root@${lanip}:<abs_file>"
+        echo "scp_wan root@${wanip}:<abs_file>"
+    fi
+}
+
+get_snapshot() {
+    # target file path
+    local rpcurl="$1"
+    local target_file="$2"
+
+    # temporary headers file
+    local headers_file="/tmp/snapshot_headers.txt"
+    rm -f ${headers_file}
+    rm -f /tmp/snapshot.tgz
+
+
+    # download the file and capture headers
+    ${curl} -D "$headers_file" -o /tmp/snapshot.tgz "$rpcurl"
+
+    if [[ ! -f "$headers_file" ]]; then
+        >&2 echo "KO 68594 failed to retrieve snapshot."
+        return 1
+    fi
+    if [[ ! -f /tmp/snapshot.tgz ]]; then
+        >&2 echo "KO 68595 failed to retrieve snapshot."
+        return 1
+    fi
+
+    # extract the hashes from the headers
+    local snapshot_hash=$(awk 'BEGIN{IGNORECASE=1}/^X-Snapshot-Hash:/ {print $2}' "$headers_file" | tr -d '\r')
+    local genesis_hash=$(awk 'BEGIN{IGNORECASE=1}/^X-Genesis-Hash:/ {print $2}' "$headers_file" | tr -d '\r')
+    rm -f ${headers_file}
+
+    # verify that the hashes were successfully extracted
+    if [[ -z "$snapshot_hash" ]]; then
+        >&2 echo "KO 82019 Failed to extract hashes from the response headers."
+        return 1
+    fi
+
+    local localhash=$(sha256sum /tmp/snapshot.tgz | awk '{ print $1 }')
+    #echo "received snapshot with checksum     $localhash"
+    #echo "received also the expected checksum $snapshot_hash"
+    if [[ "$localhash" != "${snapshot_hash}" ]]; then
+        >&2 echo "KO 68195 checksums don't match."
+        return 1
+    fi
+    mv /tmp/snapshot.tgz $(dirname $target_file)
+    pushd $(dirname $target_file) > /dev/null
+        tar xzf snapshot.tgz
+        rm snapshot.tgz
+        extracted_file=$(ls -1 script_snapshot-*)
+        #ls $extracted_file -la
+        if [[ -z "$extracted_file" ]]; then
+            >&2 ls -la
+            >&2 echo "KO 30943 Unexpected file obtained from snapshot.tgz"
+            return 1
+        fi
+        mv $extracted_file snapshot
+#        echo "Snapshot hash: $snapshot_hash"
+#        echo "Genesis hash: $genesis_hash ${genesis_hash__expected}"
+    popd > /dev/null
+    return 0
+}
+
+#!/bin/bash
+
+# Function to check if a name is a valid URL hostname
+# Valid hostname: only lowercase letters, digits, and hyphens,
+# must start and end with a letter or digit.
+valid_url_name() {
+    local name="$1"
+    if [[ $name =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+        return 0  # valid
+    else
+        return 1  # invalid
+    fi
+}
+
+# Function to generate a random host name until a valid one is found.
+get_valid_host() {
+    local host
+    while true; do
+        host=$(echo "$(shuf -n 1 /usr/share/dict/words)-$(shuf -n 1 /usr/share/dict/words)" | sed "s~'s~~")
+        # Convert to lowercase
+        host=${host,,}
+        # Check if the generated name is valid.
+        if valid_url_name "$host"; then
+            echo "$host"
+            break
+        fi
+    done
+}
+
+
+libdevtool__query_cert() {
+    local domain=$1               # example.com        cto.script.tv       mm.cto.script.tv
+    local ca_domain=$2            # com                script.tv           cto.script.tv
+    local csr="/tmp/csr_5586.csr"
+    local cfg="/tmp/xzxcnr555.cnf"
+    #echo "query_cert ${domain} ${ca_domain}"
+    libcrypto__create_CA_cert__CSR "${domain}" "${ca_domain}" ${csr} ${cfg}
+    if [[ -z "${ca_domain}" ]]; then #Root CA
+        >&2 echo "KO 55049 zero chances of being granted Root CA."
+        exit 1
+    fi
+
+    #build message
+
+    . lib/libr2r_b2c__b__cli.env
+    r2r_b2c__b__cli__init "$curl" "${b2c_URL}"
+
+    local wanip=$(libstvtool__get_wan_ip4)
+
+
+    r2r_b2c__b__hdr "${addr}" "cert_request" > /tmp/message
+    cat << EOFX >> /tmp/message
+arg CSR
+domain ${domain}
+ca_domain ${ca_domain}
+$(libcrypto__make_poo ${priv} ${pub} ${address_b58} ${address})
+ip $wanip
+EOFX
+    echo -n "CSR " >> /tmp/message
+    cat ${csr} | base64 -w0 >> /tmp/message
+    echo >> /tmp/message
+    echo -n "CFG " >> /tmp/message
+    cat ${cfg} | base64 -w0 >> /tmp/message
+    echo "" >> /tmp/message
+    echo "eof" >> /tmp/message
+
+    local header__left="User Node"
+    local header__right="CERT-REQUEST"
+    local msgfile=/tmp/message
+    if ! response=$(r2r_b2c__b__cli__send_message "${header__left}" "${header__right}" ${msgfile}); then
+        >&2 echo "KO 44032 query cert failed"
+        exit 1
+    fi
+    rm -f /tmp/message
+    rm -f ${csr}
+    rm -f ${cfg}
+
+    local crt_file=$(libcrypto__ca_cert__file_for ${domain})
+    local ca_crt_file=$(libcrypto__ca_cert__file_for ${ca_domain})
+    local stderr=$(echo "$response" | jq -r '.stderr[]')
+    if [[ ! -z "$stderr" ]]; then
+        >&2 echo "KO 99804 stderr output: $response"
+        exit 1
+    fi
+    echo "$response" | jq -r '.stdout[]' > ${crt_file}
+
+    if ! check_ca_cert ${domain}; then
+        >&2 echo "$response"
+        exit 1
+    fi
+
+    openssl verify -CAfile "${crt_file}" "${crt_file}" >/dev/null 2>/dev/null
+    if [[ $? -ne 0 ]]; then
+        >&2 cat ${crt_file}
+        >&2 echo "KO 81445 Failed to verify generated certificate."
+        #rm -f ${crt_file}
+        return 1
+    fi
+    #echo "file ${crt_file} lines $(cat ${crt_file} | wc -l)"
+    #head ${crt_file}
+}
+
+gen_sslcert() {
+    local nodedomain=$1
+    local ca_nodedomain=$2
+    local ca_crt_file=$(libcrypto__ca_cert__file_for ${nodedomain})
+    if [[ ! -f ${ca_crt_file} ]]; then
+        #echo "querying ${ca_crt_file}"
+        libdevtool__query_cert "${nodedomain}" "${ca_nodedomain}"
+    fi
+    if [[ ! -f ${ca_crt_file} ]]; then
+        >&2 echo "KO 54039"
+        exit 1
+#    else
+#        openssl verify -CAfile "${crt_file}" "${crt_file}" >/dev/null 2>/dev/null
+#        if [[ $? -ne 0 ]]; then
+#            echo "deleting ${crt_file}"
+#            rm -f ${crt_file}
+#            >&2 echo "KO 54005 "
+#            exit 1
+#        fi
+    fi
+    if ! check_ca_cert ${nodedomain}; then
+        exit 1
+    fi
+
+    #echo "all ca ok"
+
+    local ssl_crt_file=$(libcrypto__ssl_cert__file_for ${nodedomain})
+
+    #SSL
+    libcrypto__create_ssl_cert "${nodedomain}" "${nodedomain}"
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 20195 create_ssl_cert failed."
+        exit 1
+    fi
+    if [[ ! -f ${ssl_crt_file} ]]; then
+        >&2 echo "KO 20196 ${cert_file} has not been produced."
+        exit 1
+    fi
+    echo "ssl cert at ${ssl_crt_file}"
+
+    echo "TODO: fe/stvtool -> generate nginx files"
+    echo "TODO: be/b2c -> update DNS server"
+
+    return 0
+}
+
+
+grab_snapshot() {
+    local gdir="${gov__configdir}"
+    local ts="$(date +%Y%m%d%H%M%S)"
+    if [[ ${gdir}/snapshot ]]; then
+        mkdir -p ${gdir}/backup/attic
+        echo "Saved current snapshot as ${gdir}/backup/attic/snapshot_${ts}"
+        mv ${gdir}/snapshot ${gdir}/backup/attic/snapshot_${ts}
+    fi
+    get_snapshot ${b2c_url}/snapshot ${gdir}/snapshot
+    if [[ $? -ne 0 ]]; then
+        if [[ -f ${gdir}/backup/attic/snapshot_${ts} ]]; then
+            >&2 echo "KO 55049: failed to obtain the latest snapshot, continuing with an older one."
+            mv ${gdir}/backup/attic/snapshot_${ts} ${gdir}/snapshot
+        else
+            >&2 echo "KO 20193 failed to obtain the snapshot."
+        fi
+    fi
+    echo "Obtained a snapshot at ${gdir}/snapshot"
+    echo "Restart the gov service: (as root) systemctl restart script_tv__be__L1__script4__gov"
+}
+
+user__fetch_snapshot() {
+    grab_snapshot
+}
+
+user__update_snapshot() {
+    echo "KO 40399 this function has been disabled."
+    exit 1
+    wget https://download.script.tv/files/hotfix/snapshot_${ss_network} -O ${gov__configdir}/snapshot
+
+    echo "Restart L1 daemon for changes take effect:"
+    echo "Exit stv user. As root run:"
+    echo "systemctl restart script_tv__be__L1__script4__gov.service"
+}
+
+user__peers() {
+    local json_payload=$(cat << EOF | jq -c
+{
+  "jsonrpc": "2.0",
+  "method": "script.GetPeers",
+  "params": [
+    {
+    }
+  ],
+  "id": 1
+}
+EOF
+)
+    local query_output=$($curl -X POST -H "Content-Type: application/json" -d "$json_payload" ${gov__api_URL__local})
+    local peers=$(echo "$query_output" | jq -r '.result.peers[]')
+    let npeers=$(echo "${peers}" | xargs -n1 | wc -l)
+    if [[ $batch -eq 0 ]]; then
+        echo "$npeers peers"
+        echo "${peers}" | xargs -n1 | nl
+    else
+        echo -n "$npeers "
+        echo "${peers}" | xargs
+    fi
+}
+
+user__faucet() {
+    local recipient=""
+    if [[ "_${input__recipient}" == "_" ]]; then
+        recipient=${node_address}
+    else
+        recipient=${input__recipient}
+    fi
+
+    let target_balance__SCPT=0
+    if [[ "_${input__feature}" != "_" ]]; then
+        if [[ "_${input__feature}" == "_lightning" ]]; then
+            let target_balance__SCPT=${lightning_min_stake__scpt}+${license_amount_ln}
+            if [[ $batch -eq 0 ]]; then
+                echo "Faucet for lightning."
+            fi
+        elif [[ "_${input__feature}" == "_validator" ]]; then
+            let target_balance__SCPT=${validator_min_stake__scpt}+${license_amount_vn}
+            if [[ $batch -eq 0 ]]; then
+                echo "Faucet for validator."
+            fi
+        else
+            >&2 echo "KO 77968 invalid --for option ${input__feature}"
+            exit 1
+        fi
+    else
+        query_faucet ${recipient}
+        update_balance ${recipient}
+        exit 0
+    fi
+
+    query_faucet ${recipient} ${target_balance__SCPT}
+}
+
+user__transfer() {
+    local from_addr=""
+    if [[ "_${input__from_addr}" == "_" ]]; then
+        from_addr=${node_address}
+    else
+        from_addr=${input__from_addr}
+    fi
+
+    if [[ "_${input__to_addr}" == "_" ]]; then
+        >&2 echo "KO 44161 missing --to option"
+        exit 1
+    fi
+
+    local to_addr=${input__to_addr}
+    local amount_scpt=${input__scpt}
+    local amount_spay=${input__spay}
+
+    if [[ "_${to_addr}" == "_" ]]; then
+        >&2 echo "KO 44141 missing --recipient option"
+        exit 1
+    fi
+
+    validate_to_addr=$(libstvtool__validate_address ${to_addr})
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "$validate_to_addr"
+        exit 1
+    fi
+
+    validate_from_addr=$(libstvtool__validate_address ${from_addr})
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "$validate_from_addr"
+        exit 1
+    fi
+
+    if ! libstvtool__validate_decimal "${amount_scpt}"; then
+        >&2 echo "KO 44141 invalid --scpt option"
+        exit 1
+    fi
+
+    if ! libstvtool__validate_decimal "${amount_spay}"; then
+        >&2 echo "KO 44141 invalid --spay option"
+        exit 1
+    fi
+
+    if (( $(echo "$amount_scpt == 0" | bc -l) && $(echo "$amount_spay == 0" | bc -l) )); then
+        >&2 echo "KO 44142 missing --scpt or --spay option"
+        exit 1
+    fi
+
+    if (( $(echo "$amount_scpt < 0" | bc -l) || $(echo "$amount_spay < 0" | bc -l) )); then
+        >&2 echo "KO 44143 negative amount"
+        exit 1
+    fi
+
+    update_balance ${from_addr}
+    total_spay=$(printf "%.18f" $(echo "${amount_spay} + 0.000001" | bc)) #add fee
+
+    if [[ $batch -eq 0 ]]; then
+        echo "SENDER ACCOUNT"
+        echo "=============="
+        #echo "Name: (if names are implemented)"
+        echo "Address: ${from_addr}"
+        echo "Balance:"
+        echo "  SCPT: ${balance__SCPT}"
+        echo "  SPAY: ${balance__SPAY}"
+        echo
+        echo "RECIPIENT ACCOUNT"
+        echo "================="
+        #echo "Name: (if names are implemented)"
+        echo "Address: ${to_addr}"
+        echo "Amounts sent:"
+        echo "  SCPT: ${amount_scpt}"
+        echo "  SPAY: ${amount_spay}"
+        echo
+        echo "COST"
+        echo "===="
+        echo "Fees paid by sender: 0.000001 SPAY"
+        echo "Total cost:"
+        echo "  SCPT: ${amount_scpt}"
+        echo "  SPAY: ${total_spay}"
+        echo
+        read -p "Confirm? [yes|{ctrl-c}]: " confirmation
+        if [[ "$confirmation" != "yes" ]]; then
+            echo "Transaction cancelled."
+            exit 1
+        fi
+    else
+        echo "from_addr ${from_addr}"
+        echo "to_addr ${to_addr}"
+        echo "amount_scpt ${amount_scpt}"
+        echo "amount_spay ${amount_spay}"
+        echo "fee_spay 0.000001"
+        echo "total_scpt ${amount_scpt}"
+        echo "total_spay ${total_spay}"
+    fi
+    tsu=$(date +%s)
+    ts=$(date -u -d @${tsu} +"%Y-%m-%dT%H:%M:%SZ")
+
+    local seq=$(libstvtool__get_sequence $from_addr)
+    local result=$($scriptcli tx send --chain=${chain_id} --from=${from_addr} --to=${to_addr} --script=${amount_scpt} --spay=${amount_spay} --seq=$seq)
+    local trx_hash=$(echo "$result" | grep -oP '(?<="hash": ")[A-Za-z0-9]+')
+    if [[ -z "$trx_hash" ]]; then
+        echo "KO 44151 Error transaction: $result"
+        exit 1
+    fi
+
+    mkdir -p txlog
+    cat << EOF >> txlog/transfer
+#--------------------------------------------------------------------------------
+* Tx $trx_hash transfer broadcasted at $tsu $ts
+  from_addr ${from_addr}
+  to_addr ${to_addr}
+  amount_scpt ${amount_scpt}
+  amount_spay ${amount_spay}
+  fee_spay 0.000001
+  total_scpt ${amount_scpt}
+  total_spay ${total_spay}
+
+Result:
+$result
+
+
+EOF
+    if [[ $batch -eq 0 ]]; then
+        echo "Transaction hash: $trx_hash"
+        echo "Explorer link: ${fe_explorer_URL}/txs/${trx_hash}"
+    else
+        echo "tx $trx_hash"
+        echo "explorer_url ${fe_explorer_URL}/txs/${trx_hash}"
+    fi
+}
+
+user__stake() {
+    if [[ "_${input__feature}" == "_lightning" ]]; then
+        local status=$(check_node_status ${node_address} "lightning")
+        if [[ -n "$status" ]]; then
+            if [[ "$input__amount" -le 0 ]]; then
+                >&2 echo "KO 44142. Node is a lightning node. Specify amount <= 0"
+                exit 1
+            fi
+            if [[ $batch -eq 0 ]]; then
+                echo "Staking $amount to $input__feature"
+            fi
+        else
+            if [ "$input__amount" -eq 0 ]; then
+                input__amount=${lightning_min_stake__scpt}
+            elif [ "$input__amount" -lt ${lightning_min_stake__scpt} ]; then
+                >&2 echo "KO 44142. Amount less than required."
+                exit 1
+            fi
+            if [[ $batch -eq 0 ]]; then
+                echo "Upgrading node to $input__feature"
+            fi
+        fi
+        stake_lightning ${node_address} ${input__amount}
+        exit 1
+    elif [[ "_${input__feature}" == "_validator" ]]; then
+        local status=$(check_node_status ${node_address} "validator")
+        if [[ -n "$status" ]]; then
+            if [[ "$input__amount" -le 0 ]]; then
+                >&2 echo "KO 44142. Node is a validator node. Specify amount <= 0"
+                exit 1
+            fi
+            if [[ $batch -eq 0 ]]; then
+                echo "Staking $amount to $input__feature"
+            fi
+        else
+            if [ "$input__amount" -eq 0 ]; then
+                input__amount=${validator_min_stake__scpt}
+            elif [ "$input__amount" -lt ${validator_min_stake__scpt} ]; then
+                >&2 echo "KO 44142. Amount less than required."
+                exit 1
+            fi
+            if [[ $batch -eq 0 ]]; then
+                echo "Upgrading node to $input__feature"
+            fi
+            if [[ $batch -eq 0 ]]; then
+                echo "Upgrading node to $input__feature"
+            fi
+        fi
+            stake_validator ${node_address} ${input__amount}
+            exit 1
+    else
+        >&2 echo "KO 77969 invalid or missing option. ${input__feature}"
+        exit 1
+    fi
+}
+
+user__delegate() {
+    if [[ $batch -eq 0 ]]; then
+        echo "Delegating ${input__amount} SCPT to ${input__delegate_to}"
+    else
+        echo "address ${input__delegate_to}"
+        echo "amount ${input__amount}"
+    fi
+    delegate_validator ${input__delegate_to} ${node_address} ${input__amount}
+}
+
+user__license_pay_key() {
+    local api_url="${b2c_url}/getLicenseDetails"
+    local response=$($curl -s -X GET "${api_url}" -H "Content-Type: application/json")
+
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 20201 Failed to reach the API"
+        return 1
+    fi
+
+    local scriptNodePubKey=$(echo "$response" | grep -oP '(?<="address":")[^"]+')
+    if [[ -z "$scriptNodePubKey" ]]; then
+        >&2 echo "KO 22019 Failed to extract address from the response"
+        return 1
+    fi
+
+    echo "Pay License Fee to: ${scriptNodePubKey}"
+}
+
+user__buy_license() {
+    local for_addr=${input__for}
+    local referral=${input__referral}
+    local from_addr=${input__from_addr}
+    local license_type=${input__feature}
+
+    if [[ -z "$for_addr" ]]; then
+        for_addr="${node_address}"
+    fi
+
+    if [[ -z "$from_addr" ]]; then
+        from_addr="${node_address}"
+    fi
+
+    local api_url="${b2c_URL}/getLicenseDetails"
+    local response=$($curl -s -X GET "${api_url}" -H "Content-Type: application/json")
+
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 20102 Failed to reach the API"
+        return 1
+    fi
+
+    local script_node_address=$(echo "$response" | jq -r '.address')
+    local license_amount_vn=$(echo "$response" | jq -r '.amount_vn')
+    local license_amount_ln=$(echo "$response" | jq -r '.amount_ln')
+
+    if [[ -z "$script_node_address" || -z "$license_amount_vn" || -z "$license_amount_ln" ]]; then
+        >&2 echo "KO 40394 Failed to extract license details from the response"
+        return 1
+    fi
+
+    if [[ "_${license_type}" == "_validator" ]]; then
+        license_amount=${license_amount_vn}
+    elif [[ "_${license_type}" == "_lightning" ]]; then
+        license_amount=${license_amount_ln}
+    else
+        >&2 echo "KO 20675 Invalid license type"
+        return 1
+    fi
+
+    local exists=$(check_address_has_license $for_addr $license_type)
+    if [[ -z "$exists" ]]; then
+        echo "KO 20940 License already exists"
+        return 0
+    fi
+    seq=$(libstvtool__get_sequence $from_addr)
+
+    if [[ $batch -eq 0 ]]; then
+        cat <<EOF
+=========================================
+License Purchase
+=========================================
+You are about to purchase a ${license_type} license for the node address: ${for_addr}.
+The license fee of ${license_amount} SCPT will be paid from the address: ${from_addr}.
+The transaction will be sent to the Script Network node address: ${script_node_address}.
+continue? [yes|ctrl-c]
+EOF
+        read -r confirmation
+        if [[ "$confirmation" != "yes" ]]; then
+            echo "License purchase aborted."
+            exit 1
+        fi
+        echo "Sending ${license_amount} SCPT to ${script_node_address}"
+    fi
+
+
+    local send_output=$($scriptcli tx send --chain=${chain_id} --from="${from_addr}" --to="${script_node_address}" --script=${license_amount} --spay=0 --seq=$seq)
+    local trx_hash=$(echo "$send_output" | grep -oP '(?<="hash": ")[A-Za-z0-9]+')
+    #echo $send_output
+    if [[ -n "$trx_hash" ]]; then
+        if [[ $batch -eq 0 ]]; then
+            echo "Waiting for transaction to be included in a block"
+            echo "Payment transaction link: ${fe_explorer_URL}/txs/${trx_hash}"
+        else
+            echo "tx $trx_hash"
+            echo "explorer_url ${fe_explorer_URL}/txs/${trx_hash}"
+        fi
+    else
+        echo "KO 87922 Failed to extract transaction hash"
+        echo "KO 02258 Error transaction: $send_output"
+        return 1
+    fi
+    echo "Waiting 100 seconds..."
+    echo "(Please be patient. Don't cancel the process there are steps needed to be done)"
+    sleep 100
+
+    local temp_license_file="$(libstvtool__license_file)_"
+
+    output_curl_call=$(
+        if [[ "$license_type" == "validator" ]]; then
+            $curl -X POST "${b2c_URL}/buyLicense" \
+                -d "{\"trxId\":\"${trx_hash}\", \"from\":\"${from_addr}\", \"nodeAddress\":\"${for_addr}\", \"validator\": true}" \
+                -H "Content-Type: application/json"
+        elif [[ "_${license_type}" == "_lightning" ]]; then
+            $curl -X POST "${b2c_URL}/buyLicense" \
+                -d "{\"trxId\":\"${trx_hash}\", \"from\":\"${from_addr}\", \"nodeAddress\":\"${for_addr}\", \"lightning\": true}" \
+                -H "Content-Type: application/json"
+        else
+            >&2 echo "KO 20942 Invalid license type"
+            return 1
+        fi
+    )
+
+    message=$(echo "$output_curl_call" | jq -r '.message')
+    trx_id=$(echo "$output_curl_call" | jq -r '.txid')
+    encoded_file=$(echo "$output_curl_call" | jq -r '.file')
+
+    error=$(echo "$output_curl_call" | jq -r '.error')
+    if [[ -n "$error" && "$error" != "null" ]]; then
+        >&2 echo "KO 20941 Failed to buy the license. $error"
+        return 1
+    fi
+
+    if [[ -z "$encoded_file" ]]; then
+        if [[ $batch -eq 0 ]]; then
+            echo "KO 20943 Missing file in response"
+        fi
+    return 1
+    fi
+
+    echo "$encoded_file" | base64 --decode > "$temp_license_file"
+
+    if [[ $? -eq 0 ]]; then
+        if [[ -f "$(libstvtool__license_file)" ]]; then
+#            echo "Deleting existing $(libstvtool__license_file)"
+            rm "$(libstvtool__license_file)"
+        fi
+        mv "$temp_license_file" "$(libstvtool__license_file)"
+ #       echo "License saved as $(libstvtool__license_file)"
+        if [[ $batch -eq 0 ]]; then
+            echo "$message"
+        else
+            echo "OK $message"
+        fi
+        if [[ $batch -eq 0 ]]; then
+            if [[ "$license_type" == "lightning" ]]; then
+                echo "Transfer refund in progress. Transaction id: $trx_id"
+                echo "Link to the refund transaction: ${fe_explorer_URL}/txs/${trx_id}"
+            fi
+        else
+            if [[ "$license_type" == "lightning" ]]; then
+                echo "txrefund $trx_id"
+                echo "txrefund_explorer_url ${fe_explorer_URL}/txs/${trx_id}"
+            fi
+        fi
+
+    else
+        >&2 echo "KO 30293 Failed to fetch the license."
+        [[ -f "$temp_license_file" ]] && rm "$temp_license_file"
+        return 1
+    fi
+}
+
+check_address_has_license() {
+    local address="${1,,}"
+    local license_type=$2
+    local file=$(libstvtool__license_file)
+
+    if [[ -z "$address" ]]; then
+        echo "KO 44092 Missing address"
+        return 1
+    fi
+
+    if [[ -z "$license_type" ]]; then
+        echo "KO 44093 Missing license type"
+        return 1
+    fi
+
+    if [[ ! -f $file ]]; then
+        echo "KO 44094 License file not found"
+        return 1
+    fi
+
+    if [[ $license_type == "validator" ]]; then
+        license_type="VN"
+    elif [[ $license_type == "lightning" ]]; then
+        license_type="LN"
+    else
+        echo "KO 44095 Invalid license type"
+        return 1
+    fi
+
+    local license=$(cat $file | jq -c --arg address "$address" --arg license_type "$license_type" '.[] | select(.licensee == $address and (.items | type == "array" and (.[] | contains($license_type))))')
+    if [[ -n "$license" ]]; then
+        echo ""
+    else
+        echo "KO 44096 License not found"
+    fi
+}
+
+user__fetch_licenses() {
+    libstvtool__fetch_licenses
+    echo "file $(libstvtool__license_file) updated"
+}
+
+user__print_license() {
+    libstvtool__fetch_licenses
+    local address="${input__address,,}"
+    local all=${input__all}
+    local license_type=""
+
+    if [[ "_${address}" == "_" ]]; then
+        address="${node_address}"
+    fi
+
+    if [[ "${address}" != 0x* ]]; then
+        address="0x${address}"
+    fi
+
+    file=$(libstvtool__license_file)
+    if [[ $all -eq 1 ]]; then
+        if [[ $batch -eq 0 ]]; then
+            cat ${file}
+        else
+            cat ${file} | jq -r '.[] | to_entries | .[] | "\(.key) \(.value)"'
+        fi
+        exit 0
+    fi
+
+    total_licenses=$(cat ${file} | jq -c '.[] | select(.licensee == "'${address}'")' | wc -l)
+    if [[ $batch -eq 0 ]]; then
+        cat ${file} | jq -c '.[] | select(.licensee == "'${address}'")' | while read -r license; do
+            echo "========================================="
+            echo "       LICENSE $(echo $license | jq -r '.items | join(", ")') FOR $(echo $license | jq -r '.licensee') "
+            echo "========================================="
+            echo "| Licensee Address      | $(echo $license | jq -r '.licensee') |"
+            echo "| License Type          | $(echo $license | jq -r '.items | join(", ")') |"
+            echo "| Issuer Address        | $(echo $license | jq -r '.issuer') |"
+            echo "| Valid From            | $(echo $license | jq -r '.from') |"
+            echo "| Valid To              | $(echo $license | jq -r '.to') |"
+            echo "| License Items         | $(echo $license | jq -r '.items | join(", ")') |"
+            echo "========================================="
+        done
+        echo "Total Licenses: $total_licenses"
+    else
+        echo "size $total_licenses"
+        cat ${file} | jq -r '.[] | select(.licensee == "'${address}'") | to_entries | .[] | "\(.key) \(.value)"' | awk '{print; if (NR % 6 == 0) print "#end-of-record"}'
+    fi
+}
+
+check_node_status() {
+    local addr=$1
+    local license_type=$2
+    local response=$($curl "$be_explorer_local/stake/$addr")
+    if [[ -z "$response" ]]; then
+        >&2 echo "KO 33092 local explorer is not in sync"
+        exit 1
+    fi
+    local holder_records=$(echo "$response" | jq -c '.body.holderRecords[]' || echo "")
+
+    if [[ -z "$holder_records" ]]; then
+        echo ""
+        return
+    fi
+
+    addr=$(echo "$addr" | xargs | tr '[:upper:]' '[:lower:]')
+
+    while IFS= read -r record; do
+        local holder=$(echo "$record" | jq -r '.holder')
+        local type=$(echo "$record" | jq -r '.type')
+        holder=$(echo "$holder" | xargs | tr '[:upper:]' '[:lower:]')
+
+        if [[ "$holder" == "$addr" ]]; then
+            if [[ "$type" == "vcp" && "$license_type" == "validator" ]]; then
+                echo "OK"
+                return
+            elif [[ "$type" == "gcp" && "$license_type" == "lightning" ]]; then
+                echo "OK"
+                return
+            fi
+        fi
+    done <<< "$holder_records"
+
+    echo ""
+}
+
+user__node_status() {
+    local address=$(faddr ${input__address})
+#echo $address
+#set -x
+    response=$($curl -S "$be_explorer_local/stake/$address" 2>errors.log)
+    if [[ $? -ne 0 ]]; then
+        cat errors.log
+        rm -f errors.log
+        >&2 echo "KO 22090 There's a problem accessing explorer backend ($be_explorer_local)."
+        exit 1
+    fi
+    rm -f errors.log
+    if [[ -z "$response" ]]; then
+        >&2 echo "KO 33092 local explorer is not in sync"
+        exit 1
+    fi
+    holder_records=$(echo "$response" | jq -c '.body.holderRecords[]' || echo "")
+    if [[ -z "$holder_records" ]]; then
+        if [[ $batch -eq 0 ]]; then
+            echo "No holder records found associated with address $address"
+            echo "Node status summary: Node is neither validator nor lightning"
+        else
+            echo "debug $curl $be_explorer_local/stake/$address"
+            echo "response $response"
+            echo "status none"
+        fi
+        return
+    fi
+    is_validator=false
+    is_lightning=false
+    address=$(echo "$address" | xargs | tr '[:upper:]' '[:lower:]')
+    validator_min_stake_float=$(printf "%.18f" "$validator_min_stake__scpt")
+    lightning_min_stake_float=$(printf "%.18f" "$lightning_min_stake__scpt")
+
+    while IFS= read -r record; do
+        holder=$(echo "$record" | jq -r '.holder')
+        type=$(echo "$record" | jq -r '.type')
+        amount=$(libstvtool__convert_from_wei $(echo "$record" | jq -r '.amount'))
+        holder=$(echo "$holder" | xargs | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$holder" == "$address" ]]; then
+        if [[ "$type" == "vcp" ]]; then
+            if [[ "$(echo "$amount >= $validator_min_stake_float" | bc -l)" -eq 1 ]]; then
+                if [[ $batch -eq 0 ]]; then
+                    echo "Node is validator with $amount SCPT staked."
+                    is_validator=true
+                else
+                    echo "status validator"
+                    echo "amount $amount"
+                fi
+            else
+                echo "KO 78954 Validator condition failed. type=$type, amount=$amount, min_stake=$validator_min_stake_float"
+            fi
+        fi
+
+        if [[ "$type" == "gcp" ]]; then
+            if [[ "$(echo "$amount >= $lightning_min_stake_float" | bc -l)" -eq 1 ]]; then
+                if [[ $batch -eq 0 ]]; then
+                    echo "Node is lightning with $amount SCPT staked."
+                    is_lightning=true
+                else
+                    echo "status lightning"
+                    echo "amount $amount"
+                fi
+            else
+                echo "KO 78953 Lightning condition failed. type=$type, amount=$amount, min_stake=$lightning_min_stake_float"
+            fi
+        fi
+    fi
+
+    done <<< "$holder_records"
+    if [[ $batch -eq 0 ]]; then
+        if [[ $is_validator == true && $is_lightning == true ]]; then
+            echo "Node status summary: Node is both validator and lightning."
+        elif [[ $is_validator == true ]]; then
+            echo "Node status summary: Node is a validator."
+        elif [[ $is_lightning == true ]]; then
+            echo "Node status summary: Node is a lightning."
+        else
+            echo "Node status summary: Node is neither validator nor lightning"
+        fi
+    fi
+}
+
+user__docs() {
+    cat << EOF
+Documentation:
+    * stvtool: directory doc/
+    * release notes: /var/script_tv/release_notes.md
+    * tecnical data_sheet: /var/script_tv/data_sheet
+    * system updates log: cat /var/log/script_tv__updates
+
+EOF
+}
+
+user__chnode() {
+    name=$1
+    let n=1
+    libstvtool__chnode $name
+}
+
+user__print_referral() {
+    cat << EOF
+Use my node address as referral code:
+${node_address}
+Accepted when purchasing features.
+For instructions on how to install a node visit https://script.tv
+
+EOF
+}
+
+generate_random_string() {
+  local length=$1
+  tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$length"
+}
+
+#redeem pseudocode
+#redeem() {     //entry point
+#  msg=b2c::redeem1(node_address)
+#  sig=sign(msg, node_address_key)
+#  msg2=b2c::redeem2(node_address, sig)
+#  url="https://b2c.script.tv/?ssid=<sig>&msg=<msg2>  # (using signature as session id)
+#}
+
+user__run() {
+    scpfile=$1
+    $scpfile
+}
+
+xxd() { #bash impl of xxd -r -p
+    while read -r hex; do
+        printf "%b" "$(echo -n "$hex" | sed 's/../\\x&/g')"
+    done
+}
+
+priv_key_to_pem() {
+    privKeyHex="${1#0x}"
+    pubKeyHex="$(openssl ec -inform DER -text -noout -in <(cat <(echo -n "302e0201010420") <(echo -n "${privKeyHex}") <(echo -n "a00706052b8104000a") | xxd -r -p) 2>/dev/null | tail -6 | head -5 | sed 's/[ :]//g' | tr -d '\n')"
+    asnFormatKey="30740201010420${privKeyHex}a00706052b8104000aa144034200${pubKeyHex}"
+    echo "-----BEGIN EC PRIVATE KEY-----"
+    echo $asnFormatKey | xxd | base64 | fold -w 64
+    echo "-----END EC PRIVATE KEY-----"
+
+}
+
+pem_to_priv_key() {
+    sed -ne '/-----BEGIN EC PRIVATE KEY-----/,/-----END EC PRIVATE KEY-----/p' | \
+    sed '/-----.* PRIVATE KEY-----/d' | \
+    base64 -d | \
+    od -An -tx1 | tr -d ' \n' | \
+    sed -n 's/^.*0420\([a-fA-F0-9]\{64\}\).*$/\1/p'
+}
+
+user__signmsg() {
+    local msg="$1"
+    n=1
+    sk=$(libstvtool__print_keysp | grep "^address ${node_address}" | awk '{ print $4 }')
+    pem=$(priv_key_to_pem ${sk})
+    echo "hex: ${sk}"
+    echo "PEM:"
+    echo "$pem"
+    echo "hex: $(echo "$pem" | pem_to_priv_key)"
+}
+
+sign() {
+    local msg="$1"
+    echo "XX$(generate_random_string 64)"  # use script or scriptcli
+}
+
+is_valid_json() {
+    local json_string="$1"
+    echo "$json_string" | jq empty >/dev/null 2>&1
+    return $?
+}
+
+user__ip4() {
+    libstvtool__print_ip4_addresses
+}
+
+contains_error() {
+    local json_string="$1"
+
+    # Check if the JSON contains the "error" key
+    local error_message=$(echo "$json_string" | jq -r 'if has("error") then .error else empty end' 2>/dev/null)
+    if [[ -n "$error_message" ]]; then
+        echo "$error_message"
+        return 1
+    else
+        echo ""
+        return 0
+    fi
+}
+
+check_error_curl() {
+    local ans="$1"
+    is_valid_json "$ans"
+    if [ $? -ne 0 ]; then
+        >&2 echo "$ans"
+        >&2 echo "KO 40392 backend error. Not json response."
+        exit 1
+    fi
+    local error=$(contains_error "$ans")
+    if [ ! -z "$error" ]; then
+        >&2 echo "KO 40393 backend error. Received: $error"
+        exit 1
+    fi
+}
+
+user__redeem() {
+    cat << EOF
+==================================================================================
+Script Network - Lightning-L node licensing
+
+Redeem easeFlow Purchase - https://easeflow.io
+(Purchase portal link: ${flowhale_customer_frontend_URL})
+==================================================================================
+
+EOF
+    local ans="$($curl -X POST "${b2c_URL}/redeem1" -d "{\"node_address\":\"${node_address}\"}" -H "Content-Type: application/json")"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+    check_error_curl "$ans"
+    local msg=$(echo ${ans} | jq -r '.msg')
+#>&2 echo "received msg: $msg"
+
+    local sig=$(sign "$msg")
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+    if [ -z "$sig" ]; then
+        >&2 echo "KO 44023 Invalid signature: $sig"
+        exit 1
+    fi
+#>&2 echo "produced sig: $sig"
+
+
+    local ans="$($curl -X POST "${b2c_URL}/redeem2" -d "{\"node_address\":\"${node_address}\", \"sig\":\"${sig}\"}" -H "Content-Type: application/json")"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+    check_error_curl "$ans"
+#>&2 echo "received msg2: $msg2"
+    local msg2=$(echo ${ans} | jq -r '.msg2')
+
+
+    lightningInfo=$($scriptcli query lightning info)
+    summary=$(echo "$lightningInfo" | jq -r '.Summary')
+    summary=$(echo "$summary" | tr -d '\n' | tr -d '\r' | sed 's/[[:space:]]//g')
+    if [[ -z "$summary" ]]; then
+        >&2 echo "KO 44024 Failed to fetch node summary"
+        exit 1
+    fi
+
+    local url="${fe_node_sale__url}/?ssid=$(libstvtool__urlencode $sig)&msg2=$(libstvtool__urlencode "$msg2")&holderSummary=${summary}"
+    if [[ $batch -eq 0 ]]; then
+        cat << EOF
+Script Network - Lightning-L node licensing
+=========================================
+
+Its time to redeem your purchase making this node a licensed lightning-L node.
+A special URL has been generated for you, which is associated with this node.
+Please continue the redeem process on the following URL:
+${url}
+
+EOF
+    else
+        cat << EOF
+buy_url ${flowhale_customer_frontend_URL}
+redeem_url ${url}
+EOF
+    fi
+
+    #extend to wait for user to confirm redeem is done
+    #call scriptcli distribute tx api with node address + input__recipient as beneficiary > other scriptcli calls 
+    #go through stvtool to see how seq is fetched
+    #relevant output
+
+    echo "Please confirm that you have completed the redeem process on the provided URL for completing the process."
+    read -p "Have you completed the redeem process? [yes|no]: " confirmation
+    if [[ "$confirmation" != "yes" ]]; then
+        echo "Redeem process not completed. Exiting."
+        exit 1
+    fi
+
+    trx_hash=$(libstvtool__distribute_stake_trx $node_address $input__recipient $chain_id)
+    
+    if [[ -z "$trx_hash" ]]; then
+        echo "KO 44151 Error transaction: $distribute_output"
+        echo "If you have completed the redeem process, retry setting beneficiary with the command: stv distributeStakeReward"
+        return 1
+    fi
+    if [[ $batch -eq 0 ]]; then
+        echo "Transaction hash: $trx_hash"
+        echo "Explorer link: ${fe_explorer_URL}/txs/${trx_hash}"
+    else
+        echo "tx $trx_hash"
+        echo "explorer_url ${fe_explorer_URL}/txs/${trx_hash}"
+    fi
+
+echo "Your node is now a licensed Lightning-L node. You can now start using the features of the node."
+echo "To see node status and amount staked use the command: stv node_status"
+
+}
+
+user__distributeStakeReward() {
+    #Fallback for stv redeem command
+    echo "Setting beneficiary for this node to $input__recipient"
+    trx_hash=$(libstvtool__distribute_stake_trx $node_address $input__recipient $chain_id)
+
+    if [[ -z "$trx_hash" ]]; then
+        echo "KO 44151 Error transaction: $distribute_output"
+        return 1
+    fi
+    if [[ $batch -eq 0 ]]; then
+        echo "Transaction hash: $trx_hash"
+        echo "Explorer link: ${fe_explorer_URL}/txs/${trx_hash}"
+    else
+        echo "tx $trx_hash"
+        echo "explorer_url ${fe_explorer_URL}/txs/${trx_hash}"
+    fi
+}
+
+user__help() {
+    help
+    exit 0
+}
+
+user__() {
+    if [[ $nc -eq 0 ]]; then
+        >&2 help
+        >&2 echo "(stv invoked without arguments)"
+        exit 1
+    fi
+    exit 0
+}
+
+
+
+init_libstvtool() {
+    . lib/libstvtool.env
+    verboselog=/dev/null
+    load_status
+}
+
+init_stvtool() {
+    if [[ "$syncing" == "true" ]]; then
+        if [ $force -eq 0 ]; then
+                echo "Status:"
+                $scriptcli query status
+                local cd=$(echo $current_height-$latest_finalized_block_height | bc)
+                echo
+                echo "syncing: $latest_finalized_block_height / $current_height - countdown: $cd"
+                echo "Please wait for completion before using stvtool, or use -f to skip this check (blockchain data, e.g. balances won't be reliable)"
+                echo "for help type stv -f help"
+                exit 1
+        else
+                echo "WARNING: Blockchain not synchronized. Continuing (stv invoked with -f (force))."
+        fi
+    fi
+    if [ $force -eq 0 ]; then
+        if [ -z "$node_address" ]; then
+            >&2 echo "KO 54994 node_address is empty. check $scriptcli query status"
+            exit 1
+        fi
+    fi
+}
+
+if [[ "_$0" != "_bin/stvtool" ]]; then
+    >&2 echo "KO 61249 Wrong location. Execute from ${HOME} directory as bin/stvtool"
+    exit 1
+fi
+
+echo "$@" | grep '\-\-home ' > /dev/null
+if [[ $? -eq 0 ]]; then
+    libstvtool__home=$(echo "$@" | xargs -n1 | grep '\-\-home' -A1 | tail -n1)
+fi
+
+init_libstvtool $@
+
+input__for=""
+input__from_addr=""
+input__to_addr=""
+let input__a=0
+input__recipient="${node_address}"
+input__amount=0
+input__delegate_to="${node_address}"
+input__referral=""
+input__address="${node_address}"
+input__all=0
+input__scpt=0
+input__spay=0
+let force=0
+let save=0
+let n=0 #args consumed by command
+let nc=0 #num commands
+while [[ true ]]; do
+    opt=""
+    while [[ true ]]; do
+        opt=$1
+        shift
+        if [[ "_$opt" == "_" ]]; then
+            break
+        fi
+        #let nc=$nc+1
+        if [[ "_$opt" == "_--for" ]]; then
+            input__for=$1
+            shift
+            continue
+        fi
+        if [[ "_$opt" == "_-a" ]]; then
+            input__a=1
+            continue
+        fi
+        if [[ "_$opt" == "_--lightning" ]]; then
+            input__feature="lightning"
+            continue
+        elif [[ "_$opt" == "_--validator" ]]; then
+            input__feature="validator"
+            continue
+        elif [[ "_$opt" == "_--recipient" ]]; then
+            input__recipient=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--amount" ]]; then
+            input__amount=$1
+            shift
+            continue
+        elif [[ "_$opt" == "_--delegate_to" ]]; then
+            input__delegate_to=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--referral" ]]; then
+            input__referral=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--from" ]]; then
+            input__from_addr=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--to" ]]; then
+            input__to_addr=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--address" ]]; then
+            input__address=$(faddr $1)
+            shift
+            continue
+        elif [[ "_$opt" == "_--scpt" ]]; then
+            input__scpt=$1
+            shift
+            continue
+        elif [[ "_$opt" == "_--spay" ]]; then
+            input__spay=$1
+            shift
+            continue
+        elif [[ "_$opt" == "_--all" ]]; then
+            input__all=1
+            continue
+        elif [[ "_$opt" == "_-f" ]]; then
+            let force=1
+            continue
+        elif [[ "_$opt" == "_-batch" ]]; then
+            let batch=1
+            continue
+        elif [[ _$opt == _-* ]]; then
+            >&2 echo "KO 60594 Invalid option $opt"
+            exit 1
+        else
+            break
+        fi
+    done
+    cmd="$opt"
+    let n=0
+    #echo "Invoke $cmd"
+    init_stvtool
+    user__$cmd "$@"
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 09990 Invalid command $cmd, or command exited with error."
+        libstvtool_cleanup
+        exit 1
+    fi
+    shift $n
+    let nc=${nc}+1
+    if [[ "_$@" == "_" ]]; then
+        break
+    fi
+done
+
+libstvtool_cleanup
+
+exit 0

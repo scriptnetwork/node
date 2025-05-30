@@ -1,0 +1,13 @@
+/_gohome
+/_output
+/system.env
+/secrets.env
+/script
+/_doc
+/testnet
+/mainnet
+/dotool
+/scriptcli
+/generate_genesis
+/src
+/snapshots

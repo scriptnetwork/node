@@ -1,0 +1,18 @@
+@import '../../../styles/typography.scss';
+@import '../../../styles/colors.scss';
+@import '../../../styles/fonts.scss';
+
+.container {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    justify-content: center;
+    height: 80px;
+    margin-top: 1rem;
+
+    &_subHead {
+        @extend %main-paragraph;
+        color: $yellow-main;
+        text-transform: capitalize;
+    }
+}

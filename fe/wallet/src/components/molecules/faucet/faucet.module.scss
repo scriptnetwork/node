@@ -1,0 +1,104 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.faucet {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 63px;
+
+    h1 {
+        @extend %main-heading;
+        text-align: center;
+        color: $yellow-dark;
+        text-decoration: underline;
+        font-weight: 500;
+    }
+
+    &_container {
+        width: 60%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        background-color: $dark-grey-700;
+        border-radius: 20px;
+        gap: 40px;
+        padding: 40px 34px;
+
+        & > div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        &_receive {
+            margin-top: -35px;
+            @extend %main-paragraph;
+            font-weight: 500;
+
+            span,
+            p {
+                color: $white;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            span {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                justify-content: space-between;
+                height: 60px;
+                border-top: 1px solid $white;
+                border-bottom: 1px solid $white;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            @include respond-to(md) {
+                margin-top: 0px;
+            }
+        }
+
+        &_button {
+            p {
+                @extend %main-notes;
+                color: white;
+                margin-top: 3px;
+            }
+        }
+
+        &_note {
+            @extend %main-notes;
+            color: white;
+        }
+    }
+
+    @include respond-to(md) {
+        margin: 30px 0;
+
+        &_container {
+            gap: 16px;
+        }
+    }
+
+    @include respond-to(sm) {
+        margin: 20px 0;
+
+        &_container {
+            width: 80%;
+            gap: 12px;
+            padding: 20px 14px;
+        }
+    }
+
+    @include respond-to(xs) {
+        &_container {
+            width: 90%;
+            gap: 8px;
+            padding: 16px 10px;
+        }
+    }
+}

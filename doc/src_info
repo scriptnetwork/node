@@ -1,0 +1,21 @@
+nginx/main          www__backend		git@github.com:scriptnetwork/Script-Tv-Backend.git		main				7a910ba99bec57a23300cd35c7171a65c15853ae
+nginx/admin         www__admin	    	https://github.com/scriptnetwork/script-admin			it/dev				978cd064f3127d0e5b73f6e05a0921e790f5403c
+nginx/cms           www__cms		    https://github.com/scriptnetwork/script-cms			it/doc				5d23d6f4d06695192fc4a0af6913b7bf4e52cf48
+nginx/chat          www__chat		    https://github.com/scriptnetwork/scripttv-chat			main-from-prod			7e9baca665187e72d568228c06e064a4a32c3002
+nginx/main          www			        git@github.com:scriptnetwork/script-web.git			development/tv-site		59d53fc93b72c7851df79361e981a2e4cf43c699
+systemd/L1/script4/eth_adapter      blockchain_L1__eth_rpc	git@github.com:scriptnetwork/script-eth-rpc-adaptor.git		master				bb8046145523c179e99ba3c7793585b870533e3e
+systemd/market      market__backend		https://github.com/scriptnetwork/scripttv-backend2		main				58cf64cf3c1693e2937d009479384a8947ac2a41
+sc/stake            extern__staking/smart_contract          https://github.com/scriptnetwork/smart-contract                 main                            303a6a7784c39a1fa279cebc386d2b7ad42fde9c
+nginx/stake_v1      extern__staking/www__stake              https://github.com/scriptnetwork/script-web                     future/staking-page-v1          f5912c49e0b23054264670cd881032b563977a28
+nginx/stake_v2      extern__staking/www__stake_v2           https://github.com/scriptnetwork/script-web                     future/staking-page             bb541ea24fda06ac16a29610178cc0049bd3fc87
+nginx/faucet        www__faucet		https://github.com/scriptnetwork/ScriptTv-Faucet		feature/react-faucet            8a8dd4d703d550a44a16d8f2ac8cf4f0f704c0c8
+nginx/status        www__status     https://github.com/scriptnetwork/scripttv-status        deploy/service-status-prod      c7f1c0d8ad6de1a7b81fa34878c94ae44dfe6c62
+sc/glass            www__glass_contract     https://github.com/scriptnetwork/script-glass       main                7ec3805b262c8cb9dde644318d1f27cf1dc23e31
+nginx/explorer      www__explorer		https://github.com/scriptnetwork/scripttv-wallet		scripttv-wallet            08110485e9cac19aca851ad16658a6ae95b34337
+nginx/notify        push_notification__backend		https://github.com/scriptnetwork/		push-notification            a8fe064b09be4b8743379bdb686a24c9f10f3c99
+
+nginx/presale         www__token     https://github.com/scriptnetwork/scripttv-token       deploy/prod                358444ba8f5613b7df3b441a01181241f7228969
+nginx/token         -     https://github.com/scriptnetwork/script-web       deploy/token-stage                8ca9a9a9db83bf2a4dbb435c867e7f160bd3d021
+
+
+

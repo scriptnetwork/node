@@ -1,0 +1,6 @@
+/node_modules
+/secrets.env
+/config.cfg
+/dotool.js
+/_doc_rpc.json
+

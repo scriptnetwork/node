@@ -1,0 +1,7 @@
+/node_modules
+/.sass-cache
+/public/js
+/public/css
+*.map
+/secrets.env
+/dotool/index.js

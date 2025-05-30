@@ -1,0 +1,258 @@
+#!/bin/bash
+
+. /home/stv/etc/dotool.env
+
+help() {
+	cat << EOF
+  lcp	lightning/guardian candidate pool (gcp)
+  vcp	validator candidate pool (vcp)
+
+EOF
+
+}
+
+
+url=${gov__api_URL__local}
+#echo "url=$url"
+
+print_lcp_block() {
+	h=$1
+
+	args=$(jq -nc --arg height "$h" '{
+  "jsonrpc": "2.0",
+  "method": "script.GetBlockByHeight",
+  "params": [
+    { "height": $height, "include_eth_tx_hashes": true }
+  ],
+  "id": 1
+}')
+echo -n "Block $h: Gcp "
+	curl -s -H "Content-Type: application/json" -d "$args" $url | jq '.result.lightning_votes.Gcp'
+#exit 1
+}
+
+print_vcp_block() {
+	h=$1
+
+	args=$(jq -nc --arg height "$h" '{
+  "jsonrpc": "2.0",
+  "method": "script.GetBlockByHeight",
+  "params": [
+    { "height": $height, "include_eth_tx_hashes": true }
+  ],
+  "id": 1
+}')
+echo -n "Block $h: Vcp "
+	curl -s -H "Content-Type: application/json" -d "$args" $url | jq '.result'
+exit 1
+}
+
+
+hf1=1124230
+curh=1326376
+
+cp0=1124001
+cp0=1001
+
+lcp() {
+	for ((i=$cp0; i<=$curh; i+=1000)); do
+		print_lcp_block $i
+	done
+}
+
+vcp() {
+	for ((i=$cp0; i<=$curh; i+=1000)); do
+		print_vcp_block $i
+	done
+}
+
+
+block() {
+	h=$1
+
+	args=$(jq -nc --arg height "$h" '{
+  "jsonrpc": "2.0",
+  "method": "script.GetBlockByHeight",
+  "params": [
+    { "height": $height, "include_eth_tx_hashes": true }
+  ],
+  "id": 1
+}')
+	json=$(curl -s -H "Content-Type: application/json" -d "$args" $url)
+echo $json
+}
+
+blocks() {
+block 1273001
+#	for ((i=1; i<=$curh; i+=1000)); do
+#		block $i
+#	done
+}
+
+cmd=$1
+shift
+if [[ -z $cmd ]]; then
+	help
+	exit 0
+fi
+
+if [[ $cmd == "lcp" ]]; then
+	lcp
+fi
+if [[ $cmd == "vcp" ]]; then
+	vcp
+fi
+if [[ $cmd == "blocks" ]]; then
+	blocks
+fi
+if [[ $cmd == "block" ]]; then
+	block $1 | jq
+fi
+if [[ $cmd == "type10" ]]; then
+	file="stakingtx"
+#	i=$(cat $file | awk '{print $1}' | sort -n | tail -n1)
+#	if [[ -z "$i" ]]; then
+#		i=1269200
+                i=1343623
+#	fi
+	for ((; i<=$curh; i+=1)); do
+ if (( i % 100 == 0 )); then
+	echo "$i"
+ fi
+	block $i | jq -r '.result as $result | $result.transactions[] | select(.type == 10) | "\($result.height) \(.hash) \(.raw.source.address) \(.raw.holder.address) \(.raw.source.coins.scptwei | tonumber / 1000000000000000000) \(.raw.source.coins.spaywei | tonumber / 1000000000000000000)"' |  tee -a $file
+	done
+fi
+
+
+xx() {
+  tx=$1
+  url=${explorer__api_URL__local}
+
+json=$(curl -s "$url/transaction/$tx" -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0')
+#echo $json
+echo "$json" | jq -r '(.body.timestamp) + " " + (.body.timestamp | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")) + " " + 
+       " stake " + (.body.data.source.coins.scptwei | tonumber / 1000000000000000000 | tostring) + " SCPT " + 
+       (.body.data.purpose | tostring) + " Addr " + 
+       .body.data.holder.address' | tr -d '\n'
+
+addr=$(echo "$json" | jq -r '.body.data.holder.address')
+json=$(curl -s "$url/account/update/$addr" -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-GB,en;q=0.5' -H 'Accept-Encoding: gzip, deflate, br, zstd' -H 'Origin: https://explorer-mainnet.script.tv' -H 'Connection: keep-alive' -H 'Referer: https://explorer-mainnet.script.tv/' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-site' -H 'Priority: u=0')
+#echo
+#echo $json
+#echo
+#exit
+balancespay=$(echo $json | jq -r '(.body.balance.spaywei | tonumber / 1000000000000000000 | tostring)')
+
+echo " Balance SPAY $balancespay"
+
+}
+
+
+
+if [[ $cmd == "xx" ]]; then
+  cat stakingtx | awk '{ print $2}' | while read -r tx; do
+	   xx $tx
+  done
+
+
+fi
+
+
+xx2() {
+  addr=$1
+  url=${explorer__api_URL__local}
+
+json=$(curl -s "$url/accounttx/${addr}?type=5&pageNumber=1&limitNumber=100&isEqualType=false")
+
+echo $json | jq -r --arg address "$addr" '
+  .body[] | select(.type == 0) |
+  .timestamp as $ts |
+  .hash as $txid |
+  .block_height as $height |
+  (.data.outputs[] | select(.address == $address) |
+  {ts: $ts, iso: ($ts | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")), height: $height, txid: $txid, spay: (.coins.spaywei | tonumber / 1000000000000000000)})' |
+jq -s 'sort_by(.height) | .[] | "\(.ts) \(.iso) \(.height) \(.txid) \(.spay)"' | tr '"' ' ' | nl | sed 's/  / /g'
+
+
+
+
+}
+
+xx2_2() {
+	tsu=$1
+	ts=$2
+	addr=$3
+	stakescpt=$4
+#	balance_spay=$5
+        if [[ "_$stakescpt" == "_20000" ]]; then
+        	echo "$tsu $ts $addr $stakescpt $balance_spay"
+        	xx2 $addr
+	fi
+}
+
+if [[ $cmd == "xx2" ]]; then
+
+cat balance_spay_lightning__h_1343623.txt | awk '{ print $1" "$2" "$8" "$4" "$11 }' | while read -r line; do
+	tsu=$(echo "$line" | awk '{ print $1}')
+	ts=$(echo "$line" | awk '{ print $2}')
+	addr=$(echo "$line" | awk '{ print $3}')
+	stakescpt=$(echo "$line" | awk '{ print $4}')
+#	balance_spay=$(echo "$line" | awk '{ print $5}')
+	xx2_2 $tsu $ts $addr $stakescpt # $balance_spay
+done
+
+
+fi
+
+if [[ $cmd == "xx3" ]]; then
+
+# Get the current time in seconds since the epoch (default: now)
+CURRENT_DATE_SECONDS=$(date +%s)
+
+cat reward_tx | grep -v "^ " | while read -r line; do
+	echo "$line" | awk '{ print $3 }' | tr '\n' ' '
+
+	next=$(cat reward_tx | grep -v "^ " | grep "$line" -A1 | tail -n1)
+
+	paid=$(cat reward_tx | grep "$line" -A10000000000 | grep "${next}" -B100000000000 | grep -v "$next" | grep -v "$line" | awk '{sum += $6} END {print sum}')
+
+	#num=$(cat reward_tx | grep -v "^ " | grep "$line" -B1000000000000 | wc -l)
+
+
+	if [[ -z "$paid" ]]; then
+		paid="0"
+	fi
+
+	# Input date in ISO 8601 format (e.g., "2024-01-01T12:00:00")
+	PAST_DATE=$(echo "$line" | awk '{ print $2 }')
+
+	# Convert the input date to seconds since the epoch
+	PAST_DATE_SECONDS=$(date -d "$PAST_DATE" +%s)
+
+	# Calculate the difference in seconds
+	DURATION_SECONDS=$((CURRENT_DATE_SECONDS - PAST_DATE_SECONDS))
+
+	# Convert the duration to hours (3600 seconds in an hour)
+	DURATION_HOURS=$(echo "$DURATION_SECONDS / 3600" | bc -l)
+
+
+
+	# Calculate the reward
+	#https://scriptnetworkgroup.slack.com/archives/C06L6LQ3P1S/p1736462057196669?thread_ts=1736445094.342699&cid=C06L6LQ3P1S
+	#  2,137,500 / 12 = 178,135 SPAY tokens every 2 hours for 10000 nodes
+#	REWARD=$(echo "$DURATION_HOURS * 89.375 / 10000" | bc -l)
+
+
+#	owe=$(echo "${REWARD}-${paid}" | bc -l)
+
+	
+#	echo " hours $DURATION_HOURS spay $REWARD paid $paid amount_to_transfer $owe "
+	echo " hours $DURATION_HOURS paid $paid SPAY"
+done
+echo "# cur_date_seconds=${CURRENT_DATE_SECONDS}"
+fi
+
+
+if [[ $cmd == "xx4" ]]; then
+	cat rewards_payout__2025_01_10.txt  | awk '{sum += $9} END {printf "%f\n", sum}'
+fi

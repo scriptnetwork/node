@@ -1,0 +1,53 @@
+@import '../../styles/colors.scss';
+@import '../../styles/typography.scss';
+@import '../../styles/breakPoints.scss';
+
+.tokens {
+    padding: 63px 27px;
+    display: flex;
+    flex-direction: column;
+    gap: 33px;
+    width: 100%;
+
+    &_head {
+        display: flex;
+        gap: 28px;
+        width: 100%;
+    }
+
+    &_contianer {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+
+        h2 {
+            @extend %main-heading;
+            color: $yellow-main;
+        }
+
+        &>div>div {
+            max-width: calc(100vw - 320px);
+            max-height: 60vh;
+        }
+    }
+
+    @include respond-to(md) {
+        padding: 15px 30px;
+
+        &_head {
+            gap: 20px;
+        }
+    }
+
+    @include respond-to(sm) {
+        padding: 10px 20px 20px 20px;
+
+        &_head {
+            gap: 5px;
+        }
+    }
+
+
+}

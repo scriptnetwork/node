@@ -1,0 +1,44 @@
+{
+  "name": "wallet-backend",
+  "version": "1.0.0",
+  "description": "this is for pando-wallet",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "doc_rpc": "node ./doc_rpc.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vikas Rathour",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@ethereumjs/common": "^4.1.0",
+    "@ethereumjs/tx": "^5.1.0",
+    "axios": "^1.6.2",
+    "bignumber.js": "^9.1.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5",
+    "elliptic": "^6.6.1",
+    "eth-lib": "^0.2.8",
+    "ethereumjs-tx": "^2.1.2",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.2.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "mongoose": "^6.13.6",
+    "nodemon": "^3.0.1",
+    "request": "^2.88.2",
+    "swagger-markdown": "^2.3.2",
+    "web3": "^1.8.0",
+    "web3-eth": "^4.3.1"
+  },
+  "devDependencies": {
+    "swagger-autogen": "^2.23.7"
+  },
+  "resolutions": {
+    "elliptic": "6.6.1"
+  }
+}

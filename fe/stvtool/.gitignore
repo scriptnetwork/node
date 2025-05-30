@@ -1,0 +1,4 @@
+/dotool
+/_runuser
+/src/lib/*.o
+/src/stvmain

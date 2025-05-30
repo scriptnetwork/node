@@ -1,0 +1,111 @@
+@import './fonts.scss';
+@import './colors.scss';
+@import './breakPoints.scss';
+
+%main-heading {
+    font-family: $outfit;
+    font-size: 32px;
+    font-weight: 600;
+
+    @include respond-to(lg) {
+        font-size: 28px;
+    }
+
+    @include respond-to(md) {
+        font-size: 26px;
+    }
+
+    @include respond-to(sm) {
+        font-size: 24px;
+    }
+
+    @include respond-to(xs) {
+        font-size: 18px;
+    }
+}
+
+%heading-1 {
+    font-family: $outfit;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+%heading-2 {
+    font-family: $outfit;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+%heading-3 {
+    font-family: $outfit;
+    font-weight: 600;
+    font-size: 22px;
+}
+
+%heading-4 {
+    font-family: $outfit;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+%heading-5 {
+    font-family: $outfit;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+%heading-6 {
+    font-family: $outfit;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+%main-paragraph {
+    font-size: 16px;
+    font-weight: 400;
+    font-family: $outfit;
+
+    @include respond-to(md) {
+        font-size: 14px;
+    }
+}
+
+%paragraph-1 {
+    font-size: 14px;
+    font-weight: 400;
+    font-family: $outfit;
+}
+
+%paragraph-2 {
+    font-size: 12px;
+    font-weight: 400;
+    font-family: $outfit;
+}
+
+%paragraph-3 {
+    font-size: 10px;
+    font-weight: 400;
+    font-family: $outfit;
+}
+
+%label-1 {
+    font-size: 12px;
+    line-height: 26px;
+    color: $white;
+    font-weight: 500;
+    font-family: $outfit;
+}
+
+%label-2 {
+    font-size: 10px;
+    color: $white;
+    font-weight: 500;
+    font-family: $outfit;
+}
+
+%main-notes {
+    font-size: 12px;
+    color: $white;
+    font-weight: 500;
+    font-family: $outfit;
+}

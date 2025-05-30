@@ -1,0 +1,53 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2021,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "root": true,
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react/recommended", "plugin:prettier/recommended", "plugin:react-hooks/recommended"],
+    "plugins": ["@typescript-eslint", "react", "react-hooks"],
+    "rules": {
+        "indent": ["error", 4],
+        "prefer-const": "warn",
+        "no-var": "warn",
+        "no-unused-vars": "off",
+        "object-shorthand": "warn",
+        "quote-props": ["warn", "as-needed"],
+        "@typescript-eslint/array-type": "off",
+        "@typescript-eslint/consistent-type-assertions": [
+            "warn",
+            {
+                "assertionStyle": "as",
+                "objectLiteralTypeAssertions": "never"
+            }
+        ],
+        "react/jsx-fragments": ["warn", "syntax"],
+        "react/jsx-filename-extension": [
+            "warn",
+            {
+                "extensions": ["ts", "tsx"]
+            }
+        ],
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-expressions": ["error", { "allowShortCircuit": true }],
+        "react-hooks/rules-of-hooks": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off",
+        "prettier/prettier": "off"
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
+}

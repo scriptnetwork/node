@@ -1,0 +1,100 @@
+#!/bin/bash
+
+fetch_data__prod() {
+    net="mainnet"
+    echo "${net}"
+    if [[ -f snapshots/${net}/user/snapshot ]]; then
+        echo "Using existing snapshot $(pwd)/snapshots/${net}/user/snapshot"
+    else
+        echo "Obtaining snapshot $(pwd)/snapshots/${net}/user/snapshot"
+        mk_snapshot="script_tv__mk_snapshot"
+        host="vmlon07.cto.script.tv"
+        snapshot=$(ssh root@$host ${mk_snapshot})
+        echo "snapshot_${net} ${snapshot}"
+        mkdir -p snapshots/${net}/user
+        scp root@${host}:${snapshot} snapshots/${net}/user/snapshot
+        echo
+    fi
+
+    net="testnet"
+    echo "${net}"
+    if [[ -f snapshots/${net}/user/snapshot ]]; then
+        echo "Using existing snapshot $(pwd)/snapshots/${net}/user/snapshot"
+    else
+        echo "Obtaining snapshot $(pwd)/snapshots/${net}/user/snapshot"
+        mk_snapshot="script_tv__mk_snapshot"
+        host="vmlon04.cto.script.tv"
+        snapshot=$(ssh root@$host ${mk_snapshot})
+        echo "snapshot_${net} ${snapshot}"
+        mkdir -p snapshots/${net}/user
+        scp root@${host}:${snapshot} snapshots/${net}/user/snapshot
+        echo
+    fi
+
+    #    mkdir -p snapshots/${net}/genesis
+    #    mkdir -p snapshots/${net}/user1
+        #scp root@${vm}:${snapshot} snapshots/${net}/genesis/snapshot
+        #cp snapshots/${net}/genesis/snapshot snapshots/${net}/user1/
+        #cp snapshots/${net}/genesis/snapshot snapshots/${net}/user/
+
+    exit 0
+}
+
+fetch_data__stage() {
+    net="mainnet"
+    echo "${net}"
+    if [[ -f snapshots/${net}/user/snapshot ]]; then
+        echo "Using existing snapshot $(pwd)/snapshots/${net}/user/snapshot"
+    else
+        echo "Obtaining snapshot $(pwd)/snapshots/${net}/user/snapshot"
+        mk_snapshot="script_tv__mk_snapshot__mainnet_genesis"
+        host="vmlon03.cto.script.tv"
+        snapshot=$(ssh root@$host ${mk_snapshot})
+        echo "snapshot_${net} ${snapshot}"
+        mkdir -p snapshots/${net}/user
+        scp root@${host}:${snapshot} snapshots/${net}/user/snapshot
+        echo
+    fi
+
+    net="testnet"
+    echo "${net}"
+    if [[ -f snapshots/${net}/user/snapshot ]]; then
+        echo "Using existing snapshot $(pwd)/snapshots/${net}/user/snapshot"
+    else
+        echo "Obtaining snapshot $(pwd)/snapshots/${net}/user/snapshot"
+        mk_snapshot="script_tv__mk_snapshot__testnet_genesis"
+        host="vmlon03.cto.script.tv"
+        snapshot=$(ssh root@$host ${mk_snapshot})
+        echo "snapshot_${net} ${snapshot}"
+        mkdir -p snapshots/${net}/user
+        scp root@${host}:${snapshot} snapshots/${net}/user/snapshot
+        echo
+    fi
+}
+
+clean() {
+    rm -rf snapshots
+    echo "snapshots dir deleted"
+}
+
+conf=$1
+
+if [[ $conf == "stage" ]]; then
+    fetch_data__stage
+elif [[ $conf == "stage1" ]]; then
+    fetch_data__stage
+elif [[ $conf == "prod" ]]; then
+    fetch_data__prod
+elif [[ $conf == "clean" ]]; then
+    clean
+else
+    >&2 echo "Argument:"
+    >&2 echo "  stage ................. fetch snapshots from stage"
+    >&2 echo "  stage1 ................ fetch snapshots from stage; called by CI before deploying"
+    >&2 echo "  prod .................. fetch snapshots from production; called by CI before deploying"
+    >&2 echo "  clean ................. clean local data"
+    >&2 echo "KO 77016 cfg not supported. enter stage, stage1, prod or clean"
+    exit 1
+fi
+exit 0
+

@@ -1,0 +1,52 @@
+name: deploy staking page
+
+on:
+  push:
+    branches: deploy/stakev2/prod
+
+# setup process here
+# https://github.com/marketplace/actions/cloudflare-pages-github-action
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./fe/stake_v2
+    permissions:
+      contents: read
+      deployments: write
+    name: Publish stake_v2 to Cloudflare Pages to stake.script.tv
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.1'
+      - run: npm install --legacy-peer-deps
+      - run: CI=false npm run build
+
+      # Run a build step here if your project requires
+
+      - name: Publish to Cloudflare Pages
+        # uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@da5325ca9f7c190c72f2979c7f241014d1d8e752
+        with:
+          # this is API token created in Cloudflare's Dashboard with permissions to publish to Pages
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Script Network accound id
+          accountId: 66c64de84292d45773847923f875e010
+          projectName: stakev2
+          directory: ./fe/stake_v2/build
+          # Optional: Enable this if you want to have GitHub Deployments triggered
+          #gitHubToken: {{ secrets.GITHUB_TOKEN }}
+          # Optional: Switch what branch you are publishing to.
+          # By default this will be the branch which triggered this workflow
+          #branch: deploy/staking/prod
+          # Optional: Change the working directory
+          # workingDirectory: my-site
+          # Optional: Change the Wrangler version, allows you to point to a specific version or a tag such as `beta`
+          wranglerVersion: '3'

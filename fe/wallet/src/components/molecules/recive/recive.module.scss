@@ -1,0 +1,208 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.recive {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 63px;
+    color: $white;
+
+    &_container {
+        position: relative;
+        width: 60%;
+        max-width: 700px;
+
+        &_blured {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: $dark-grey-700;
+            border-radius: 20px;
+            gap: 10px;
+            padding: 40px 34px;
+            align-items: center;
+            filter: blur(5px);
+            pointer-events: none;
+
+            h1 {
+                @extend %heading-1;
+                text-align: center;
+                color: $yellow-dark;
+                text-decoration: underline;
+                font-weight: 500;
+
+                @include respond-to(md) {
+                    font-size: 30px;
+                }
+
+                @include respond-to(xs) {
+                    font-size: 22px;
+                }
+            }
+
+            h2 {
+                @extend %heading-2;
+                font-weight: 500;
+
+                @include respond-to(md) {
+                    font-size: 28px;
+                }
+
+                @include respond-to(xs) {
+                    font-size: 15px;
+                }
+            }
+
+            p {
+                font-weight: 500;
+                font-size: 18px;
+
+                @include respond-to(md) {
+                    font-size: 16px;
+                }
+
+                @include respond-to(xs) {
+                    font-size: 10px;
+                }
+            }
+
+            & > button:first-of-type {
+                width: max-content !important;
+            }
+
+            .copyButton {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+
+                span {
+                    font-size: 18px;
+                    font-weight: 500;
+                }
+
+                @include respond-to(md) {
+                    font-size: 28px;
+                    gap: 8px;
+
+                    span {
+                        font-size: 16px;
+                    }
+
+                    svg {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+
+                @include respond-to(xs) {
+                    font-size: 15px;
+                    gap: 4px;
+
+                    span {
+                        font-size: 12px;
+                    }
+
+                    svg {
+                        width: 15px;
+                        height: 15px;
+                    }
+                }
+            }
+
+            & > img {
+                margin: 16px 0;
+            }
+
+            span {
+                font-weight: 300;
+                font-size: 14px;
+
+                @include respond-to(sm) {
+                    font-size: 12px;
+                    width: 100%;
+                }
+            }
+
+            &_copyBox {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                @include respond-to(md) {
+                    button {
+                        padding: 12px 14px;
+                    }
+                }
+
+                @include respond-to(sm) {
+                    button {
+                        padding: 8px 10px;
+                    }
+                }
+
+                .copyState {
+                    position: absolute;
+                    bottom: -20px;
+                }
+            }
+        }
+    }
+
+    .coming_soon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    @include respond-to(md) {
+        margin: 30px 0;
+
+        &_container {
+            gap: 16px;
+
+            & > img {
+                width: 120px;
+            }
+        }
+    }
+
+    @include respond-to(sm) {
+        margin: 20px 0;
+
+        &_container {
+            width: 80%;
+            gap: 12px;
+            padding: 20px 14px;
+
+            & > img {
+                width: 88px;
+            }
+
+            button:first-of-type {
+                width: 100% !important;
+            }
+        }
+
+        label {
+            font-size: 16px;
+        }
+    }
+
+    @include respond-to(xs) {
+        &_container {
+            width: 90%;
+            gap: 8px;
+            padding: 16px 10px;
+        }
+    }
+}

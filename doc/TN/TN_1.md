@@ -1,0 +1,3 @@
+### Use of port 443 in FE commit 5fc826c
+
+When using the official HTTPS port 443, NGINX leverages Server Name Indication (SNI) to distinguish between multiple server blocks based on their server_name directives, allowing multiple domains to share the same port without conflict. However, when using unofficial ports like 4443 or 880, NGINX cannot rely on SNI in the same way. Instead, it differentiates server blocks primarily based on the port number. Therefore, if two server blocks are configured to listen on the same unofficial port, NGINX encounters a conflict and fails to start both. To avoid this, each server block must be assigned a unique port, ensuring there is no overlap. Each instance of each frontend faces this issue.

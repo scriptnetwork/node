@@ -1,0 +1,65 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    width: 100%;
+
+    button{
+        width: max-content;
+    }
+
+    .table {
+        overflow-x: auto;
+        width: 100%;
+
+        &::-webkit-scrollbar {
+            height: 5px !important;
+            width: 5px !important;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #747474;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: $yellow-main;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: $yellow-dark;
+        }
+
+        table {
+            @extend %main-paragraph;
+            color: $white;
+            border-spacing: 10px;
+            width: 100%;
+
+            tr {
+                border-top: 1px solid #202125;
+                border-bottom: 1px solid #202125;
+                border-collapse: collapse;
+                height: 58px;
+            }
+
+            td,
+            th {
+                max-width: 230px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                padding: 0 15px;
+            }
+        }
+
+        @include respond-to(md) {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+}

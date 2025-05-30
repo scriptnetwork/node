@@ -1,0 +1,35 @@
+#!/bin/bash
+if [[ -f system.env ]]; then
+    . system.env
+fi
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+set_vars() {
+    if [[ "_${build_date}" == "_" ]]; then
+        build_date="$(date -u)"
+    fi
+    if [[ "_${git_version}" == "_" ]]; then
+        git_version="$(git rev-parse HEAD)"
+    fi
+}
+
+build_install() {
+
+    npm install --legacy-peer-deps
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 83940 build failed"
+        exit 1
+    fi
+
+}
+
+set_vars
+build_install
+exit 0
+

@@ -1,0 +1,49 @@
+@import "../../../styles/colors.scss";
+@import "../../../styles/typography.scss";
+@import "../../../styles/breakPoints.scss";
+
+.wallet {
+    width: 90%;
+    max-width: 1140px;
+    min-height: 500px;
+    background-color: rgb(16 19 26);
+    border-radius: 21px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 35px;
+    gap: 30px;
+
+    &>img {
+        width: 40%;
+        padding: 50px 0;
+
+        @include respond-to(md) {
+            display: none;
+        }
+    }
+
+    &_container {
+        width: 100%;
+        padding: 40px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+
+        &_tabs {
+            display: flex;
+            gap: 2rem;
+
+            &>div {
+                @extend %main-paragraph;
+                letter-spacing: 1px;
+                color: $dark-grey-500;
+                cursor: pointer;
+            }
+
+            &_active {
+                color: $yellow-main !important;
+                text-decoration: underline;
+            }
+        }
+    }
+}

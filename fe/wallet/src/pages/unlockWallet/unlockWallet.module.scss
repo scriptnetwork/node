@@ -1,0 +1,29 @@
+@import "../../styles/colors.scss";
+@import "../../styles/typography.scss";
+
+.unlockWallet {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    &_container {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        align-items: center;
+
+        &>h1 {
+            @extend %main-heading;
+            font-weight: 700;
+            line-height: 42px;
+
+            &>.odd {
+                color: $yellow-main;
+            }
+
+            &>.even {
+                color: $white;
+            }
+        }
+    }
+}

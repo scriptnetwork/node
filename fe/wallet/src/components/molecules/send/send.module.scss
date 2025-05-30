@@ -1,0 +1,90 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.send {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 63px;
+
+    h1 {
+        @extend %main-heading;
+        text-align: center;
+        color: $yellow-dark;
+        text-decoration: underline;
+        font-weight: 500;
+    }
+
+    label {
+        @extend %main-paragraph;
+        color: $white;
+    }
+
+    &_container {
+        position: relative;
+        width: 60%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        background-color: $dark-grey-700;
+        border-radius: 20px;
+        gap: 24px;
+        padding: 40px 34px;
+
+        &_fee {
+            @extend %main-notes;
+            color: $white;
+            margin-top: -20px;
+
+            @include respond-to(md) {
+                margin-top: -15px;
+            }
+
+            @include respond-to(sm) {
+                margin-top: -10px;
+            }
+
+            @include respond-to(xs) {
+                margin-top: -5px;
+            }
+        }
+    }
+
+    @include respond-to(md) {
+        margin: 30px 0;
+
+        &_container {
+            gap: 16px;
+        }
+    }
+
+    @include respond-to(sm) {
+        margin: 20px 0;
+
+        &_container {
+            width: 80%;
+            gap: 12px;
+            padding: 20px 14px;
+        }
+    }
+
+    @include respond-to(xs) {
+        &_container {
+            width: 90%;
+            gap: 8px;
+            padding: 16px 10px;
+        }
+    }
+
+    &_error {
+        margin-top: -20px;
+
+        p {
+            @extend %main-notes;
+            color: $error;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+    }
+}

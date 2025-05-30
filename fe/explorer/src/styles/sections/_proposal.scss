@@ -1,0 +1,786 @@
+.back-title {
+    font-size: 16px;
+    line-height: 35px;
+    margin: 30px 0;
+    font-weight: 400;
+    // font-family: "Poppins Regular";
+    color: #ffffff;
+    i {
+        font-size: 20px;
+        margin: 0 20px 0 0;
+    }
+}
+
+.proposal-wrapper {
+    h2 {
+        font-size: 22px;
+        letter-spacing: 2px;
+        line-height: 40px;
+        font-weight: 400;
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 28px;
+        font-weight: 400;
+        color: #ffffff;
+        // font-family: "Poppins Regular";
+    }
+}
+
+.status-wrapper {
+    display: flex;
+    flex-direction: row;
+    margin: 20px 0;
+    .status {
+        width: 33.33%;
+        padding: 0 20px;
+        border-right: 1px dashed #ffef00;
+        .status-title {
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 28px;
+            color: #869391;
+            // font-family: "Poppins Regular";
+        }
+
+        .status-value {
+            i {
+                color: #ffef00;
+                font-size: 18px;
+            }
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 25px;
+            margin: 0;
+            color: #ffffff;
+            // font-family: "Poppins Regular";
+        }
+    }
+
+    .vote {
+        width: 33.33%;
+        padding: 0 20px;
+        border-right: 1px dashed #ffef00;
+        .vote-title {
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 28px;
+            color: #869391;
+            // font-family: "Poppins Regular";
+        }
+
+        .vote-value {
+            font-weight: 600;
+            font-size: 18px;
+            line-height: 25px;
+            margin: 0;
+            color: #ffffff;
+            // font-family: "Poppins Regular";
+        }
+    }
+
+    .vote-btn {
+        width: 33.33%;
+        padding: 0 20px;
+        margin: auto;
+        button {
+            padding: 7px 25px;
+            background-color: #ffef00;
+            color: #000000;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 18px;
+            line-height: 35px;
+            border: none;
+            box-shadow: none;
+            // font-family: "Poppins Regular";
+        }
+    }
+}
+
+.vote-for-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0;
+    background-color: #161616;
+    border-radius: 20px;
+    padding: 20px;
+    p {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 0;
+        span {
+            color: #ffffff;
+        }
+        span:nth-child(1) {
+            // font-family: "Poppins Regular";
+            font-style: normal;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 28px;
+        }
+
+        span:nth-child(2) {
+            // font-family: "Poppins Regular";
+            font-style: normal;
+            font-weight: 500;
+            font-size: 22px;
+            line-height: 35px;
+        }
+    }
+    .progress {
+        width: 100%;
+        margin: 20px 0;
+    }
+}
+
+.proposal-card {
+    background-color: #161616;
+    padding: 18px;
+    border-radius: 20px;
+    margin: 20px 0;
+    .title {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 30px;
+        color: #ffffff;
+    }
+    h2 {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 500;
+        font-size: 22px;
+        line-height: 35px;
+        margin-top: 30px;
+        color: #ffffff;
+    }
+
+    .info {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 28px;
+        text-transform: lowercase;
+        color: #869391;
+    }
+}
+
+.proposal-content-wrapper {
+    margin: 20px 0;
+    .desc-label {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 28px;
+        color: #ffffff;
+    }
+
+    .shapiro-title {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 22px;
+        line-height: 40px;
+        color: #ffffff;
+    }
+
+    .content {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 28px;
+        color: #ffffff;
+        .shapiro-title1 {
+            font-weight: 400;
+            font-size: 22px;
+            line-height: 40px;
+            color: #ffffff;
+            margin-top: 10px;
+        }
+    }
+}
+
+.forum-discord-wrapper {
+    margin: 20px;
+    .title {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 28px;
+        color: #869391;
+    }
+
+    .sub-title {
+        // font-family: "Poppins Regular";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 28px;
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #ffffff;
+    }
+
+    .btn-wrapper {
+        display: flex;
+        .for-btn {
+            color: #ffef00;
+            background-color: #1e1e1e;
+            margin-right: 20px;
+            font-weight: 500;
+            font-size: 18px;
+            border-radius: 9px;
+            line-height: 35px;
+            text-decoration: none;
+            padding: 5px 15px;
+        }
+        .dis-btn {
+            background-color: #ffef00;
+            color: #1e1e1e;
+            margin-right: 20px;
+            font-weight: 500;
+            font-size: 18px;
+            border-radius: 9px;
+            line-height: 35px;
+            text-decoration: none;
+            padding: 5px 15px;
+        }
+        // a {
+        //     color: #ffef00;
+        //     background-color: #1e1e1e;
+        //     margin-right: 20px;
+        //     font-weight: 500;
+        //     font-size: 18px;
+        //     border-radius: 9px;
+        //     line-height: 35px;
+        //     text-decoration: none;
+        //     padding: 5px 15px;
+        // }
+        a:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+@media (min-width: 1518px) {
+    .back-title {
+        font-size: 1.17vw;
+        line-height: 2.56vw;
+        margin: 2.19vw 0;
+        i {
+            font-size: 1.46vw;
+            margin: 0 1.46vw 0 0;
+        }
+    }
+
+    .proposal-wrapper {
+        h2 {
+            font-size: 1.7vw;
+            letter-spacing: 0.14vw;
+            line-height: 2.92vw;
+        }
+
+        p {
+            font-size: 1.17vw;
+            line-height: 2.04vw;
+        }
+    }
+
+    .status-wrapper {
+        margin: 1.46vw 0;
+        .status {
+            padding: 0 1.46vw;
+            border-right: 3px dashed #ffef00;
+            .status-title {
+                font-size: 1.17vw;
+                line-height: 2.04vw;
+            }
+
+            .status-value {
+                i {
+                    font-size: 1.31vw;
+                }
+                font-size: 1.31vw;
+                line-height: 1.83vw;
+            }
+        }
+
+        .vote {
+            padding: 0 1.46vw;
+            border-right: 3px dashed #ffef00;
+            .vote-title {
+                font-size: 1.17vw;
+                line-height: 2.04vw;
+            }
+
+            .vote-value {
+                font-size: 1.31vw;
+                line-height: 1.83vw;
+            }
+        }
+
+        .vote-btn {
+            padding: 0 1.46vw;
+            button {
+                padding: 0.54vw 1.83vw;
+                border-radius: 2.19vw;
+                font-size: 1.39vw;
+                line-height: 2.56vw;
+            }
+        }
+    }
+
+    .vote-for-wrapper {
+        margin: 1.46vw 0;
+        border-radius: 1.46vw;
+        padding: 1.46vw;
+        p {
+            span:nth-child(1) {
+                font-size: 1.17vw;
+                line-height: 2.04vw;
+            }
+
+            span:nth-child(2) {
+                font-size: 1.7vw;
+                line-height: 2.56vw;
+            }
+        }
+
+        .progress {
+            margin: 1.46vw 0;
+        }
+    }
+
+    .proposal-card {
+        // padding: 1.46vw;
+        border-radius: 1.46vw;
+        margin: 1.46vw 0;
+        padding: 1.39vw !important;
+        .title {
+            font-size: 1.17vw;
+            line-height: 2.19vw;
+        }
+        h2 {
+            font-size: 1.7vw;
+            line-height: 2.56vw;
+            margin-top: 2.19vw;
+        }
+
+        .info {
+            font-size: 1.17vw;
+            line-height: 2.19vw;
+        }
+    }
+
+    .proposal-content-wrapper {
+        margin: 1.46vw 0;
+        .desc-label {
+            font-size: 1.17vw;
+            line-height: 2.19vw;
+        }
+
+        .shapiro-title {
+            font-size: 1.7vw;
+            line-height: 2.92vw;
+        }
+
+        .content {
+            font-size: 1.23vw;
+            line-height: 2.04vw;
+            width: 100% !important;
+            margin: 0 !important;
+            .shapiro-title1 {
+                font-size: 1.7vw;
+                line-height: 2.92vw;
+                margin-top: 0.77vw !important;
+            }
+        }
+    }
+
+    .forum-discord-wrapper {
+        margin: 1.46vw;
+        .title {
+            font-size: 1.17vw;
+            line-height: 2.19vw;
+        }
+
+        .sub-title {
+            font-size: 1.1vw;
+            line-height: 2.04vw;
+            margin-bottom: 1.46vw;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            .for-btn {
+                margin-right: 1.46vw;
+                font-size: 1.31vw;
+                border-radius: 0.619vw;
+                line-height: 2.56vw;
+                padding: 0.36vw 1.15vw;
+            }
+            .dis-btn {
+                margin-right: 1.46vw;
+                font-size: 1.31vw;
+                border-radius: 0.619vw;
+                line-height: 2.56vw;
+                padding: 0.36vw 1.15vw;
+            }
+        }
+    }
+
+    // .proposal-card-section .proposal-card img {
+    //     width: 70px;
+    // }
+    // .proposal-card-section .proposal-card img {
+    //     width: 35px;
+    // }
+
+    // .proposal-card {
+    //     padding: 14px !important;
+    // }
+    .proposal-card-section .proposal-card img,
+    .vote-for-wrapper img {
+        width: 3.09vw;
+    }
+}
+
+@media (max-width: 3440px) {
+    // .proposal-card {
+    //     padding: 32px !important;
+    // }
+    .proposal-card .title {
+        word-spacing: 12px;
+    }
+    // .proposal-card-section .proposal-card img,
+    // .vote-for-wrapper img {
+    //     width: 80px;
+    // }
+    .proposal-card .title {
+        letter-spacing: 0.14vw !important;
+        word-spacing: 5px !important;
+        font-size: 1.1vw !important;
+    }
+    // .language-select:after{left: 130px;}
+}
+
+@media (max-width: 2560px) {
+    .proposal-card-section .proposal-card img {
+        width: 60px !important;
+    }
+
+    // .proposal-content-wrapper .content {
+    //     font-size: 1.1vw;
+    // }
+    .forum-discord-wrapper .sub-title {
+        font-size: 1.1vw;
+    }
+    .proposal-card .title {
+        letter-spacing: 0.14vw !important;
+        word-spacing: 5px !important;
+        font-size: 1vw !important;
+    }
+    // .language-select:after{left: 95px;}
+}
+
+@media (max-width: 1440px) {
+    .proposal-card .title {
+        font-size: 15px;
+    }
+    // .proposal-card-section .proposal-card img {
+    //     width: 30px;
+    // }
+
+    .vote-for-wrapper p span:first-child {
+        margin-top: 8px;
+    }
+    .proposal-card-section .proposal-card img,
+    .vote-for-wrapper img {
+        width: auto !important;
+    }
+    .proposal-card {
+        padding: 18px !important;
+    }
+    // .proposal-content-wrapper .content {
+    //     font-size: 1rem;
+    // }
+    .forum-discord-wrapper .sub-title {
+        font-size: 1rem;
+    }
+
+    // .proposal-card .title {
+    //     letter-spacing: 0.14vw !important;
+    //     word-spacing: 5px !important;
+    //     font-size: 1.5vw !important;
+    // }
+    .language-select:after {
+        left: 75px;
+        // top: 10px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .proposal-card .title {
+        font-size: 12px;
+    }
+    .proposal-card {
+        padding: 12px 18px;
+    }
+    .vote-for-wrapper img {
+        width: 40px;
+    }
+    .vote-for-wrapper p span:first-child {
+        margin-top: 8px;
+    }
+    .proposal-card .title {
+        word-spacing: 8px;
+    }
+    .proposal-content-wrapper .content {
+        font-size: 1.1rem;
+    }
+    .forum-discord-wrapper .sub-title {
+        font-size: 1.1rem;
+    }
+    .proposal-card {
+        padding: 14px !important;
+    }
+    .proposal-card .title {
+        letter-spacing: 0.14vw !important;
+        word-spacing: 5px !important;
+        font-size: 1.5vw !important;
+    }
+    .status-wrapper .vote {
+        padding: 0 15px;
+    }
+}
+@media (max-width: 767px) {
+    .back-title {
+        margin-left: 10px;
+        font-size: 11px;
+    }
+    .proposal-wrapper h2 {
+        font-size: 18px;
+        line-height: 25px;
+    }
+    .proposal-wrapper p {
+        font-size: 12px;
+        line-height: 15px;
+    }
+    .status-wrapper {
+        .status {
+            .status-title {
+                font-size: 11px;
+            }
+            .status-value {
+                i {
+                    font-size: 16px;
+                }
+                font-size: 11px;
+            }
+        }
+        .vote {
+            .vote-title {
+                font-size: 11px;
+                line-height: 28px;
+            }
+            .vote-value {
+                font-size: 16px;
+            }
+        }
+        .vote-btn {
+            button {
+                font-size: 16px;
+            }
+        }
+    }
+
+    .vote-for-wrapper {
+        p {
+            span:nth-child(1) {
+                font-size: 11px;
+                line-height: 28px;
+            }
+            span:nth-child(2) {
+                font-size: 16px;
+            }
+        }
+    }
+    .proposal-content-wrapper {
+        .desc-label {
+            font-size: 11px;
+        }
+
+        .shapiro-title {
+            font-size: 18px;
+            line-height: 15px;
+        }
+
+        .content {
+            font-size: 11px;
+            line-height: 18px;
+            .shapiro-title1 {
+                font-size: 18px;
+                line-height: 15px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+        }
+    }
+    .proposal-card .title {
+        font-size: 11px !important;
+    }
+    .proposal-card h2 {
+        font-size: 16px;
+    }
+    .forum-discord-wrapper .sub-title {
+        font-size: 11px;
+    }
+    .back-title i {
+        font-size: 15px;
+        margin: 0px 5px 0px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .back-title {
+        margin-left: 10px;
+    }
+    .vote-section {
+        width: 100%;
+    }
+    .vote-for-section {
+        width: 100%;
+    }
+    .vote-for-wrapper {
+        width: 100%;
+    }
+    .vote-for-section {
+        width: 100%;
+    }
+    .proposal-card-section {
+        width: 100%;
+    }
+    .proposal-content-section {
+        width: 100%;
+    }
+    .vote-for-wrapper {
+        width: 100%;
+    }
+    .proposal-card-main {
+        width: 100%;
+    }
+    .vote-for-wrapper p span:first-child {
+        margin-top: 8px;
+    }
+    .vote-for-wrapper img {
+        width: 40px;
+    }
+    // .proposal-card .title {
+    //     letter-spacing: 0.14vw !important;
+    //     word-spacing: 5px !important;
+    //     font-size: 2.5vw !important;
+    // }
+}
+
+@media (max-width: 425px) {
+    .vote-for-section {
+        width: 100%;
+    }
+    .proposal-card-section {
+        width: 100%;
+    }
+    .proposal-content-section {
+        width: 100%;
+    }
+    .vote-for-wrapper {
+        width: 100%;
+    }
+    .status-wrapper .status {
+        padding: 0px 18px;
+    }
+    .status-wrapper .vote {
+        padding: 0px 18px;
+    }
+    .status-wrapper .vote-btn {
+        padding: 0px 10px;
+    }
+    .status-wrapper .vote-btn button {
+        padding: 4px 30px;
+    }
+    // .proposal-card .title {
+    //     letter-spacing: 0.14vw !important;
+    //     word-spacing: 5px !important;
+    //     font-size: 4vw !important;
+    // }
+}
+
+@media (max-width: 375px) {
+    .vote-for-section {
+        width: 100%;
+    }
+    .proposal-card-section {
+        width: 100%;
+    }
+    .proposal-content-section {
+        width: 100%;
+    }
+    .vote-for-wrapper {
+        width: 100%;
+    }
+    .status-wrapper .status {
+        padding: 8px;
+    }
+    .status-wrapper .vote {
+        padding: 0px 12px;
+    }
+    .status-wrapper .vote-btn {
+        padding: 0px 16px;
+    }
+    .status-wrapper .vote-btn button {
+        padding: 4px 15px;
+    }
+    .proposal-card .title {
+        letter-spacing: 0.14vw !important;
+        word-spacing: 5px !important;
+        font-size: 4.5vw !important;
+    }
+}
+
+@media (max-width: 320px) {
+    // PROPOSAL
+    .vote-for-section {
+        width: 100%;
+    }
+    .proposal-card-section {
+        width: 100%;
+    }
+    .proposal-content-section {
+        width: 100%;
+    }
+    .vote-for-wrapper {
+        width: 100%;
+    }
+    .status-wrapper .status {
+        padding: 0px 6px;
+    }
+    .status-wrapper .vote {
+        padding: 0px 15px;
+    }
+    .status-wrapper .vote-btn {
+        padding: 0px 10px;
+    }
+    .status-wrapper .vote-btn button {
+        padding: 4px 15px;
+    }
+    .proposal-card .title {
+        letter-spacing: 0.14vw !important;
+        word-spacing: 5px !important;
+        font-size: 4.5vw !important;
+    }
+}

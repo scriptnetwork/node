@@ -1,0 +1,149 @@
+table.data.block-table {
+  width: 100%;
+  background: #232334bf;
+  border-radius: 10px;
+  tbody td {
+    padding-left: 20px;
+  }
+  thead tr .height:before {
+    height: 1px;
+  }
+  tr .height {
+    // width: 90px;
+    width: 15%;
+    white-space: nowrap;
+    padding: 10px;
+    &:before {
+      content: "";
+      height: 14px;
+      display: inline-block;
+    }
+  }
+
+  tr th {
+    // width: 50%;
+    padding: 10px;
+  }
+
+  tr .hash {
+    width: 50% !important;
+    padding: 0 10px;
+  }
+  tr .age {
+    width: 15%;
+  }
+  tr .txns {
+    width: 15%;
+  }
+
+  @include breakpoint("tablet-wide", max) {
+    table-layout: fixed;
+    thead th,
+    tbody td,
+    tbody th {
+      text-align: left;
+      padding: 0.5rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+  @include breakpoint("tablet", max) {
+    tr .hash {
+      width: 250px;
+    }
+  }
+  @include breakpoint("tablet-small", max) {
+    tr .hash {
+      width: 250px;
+    }
+    tr .fee {
+      @include hideColumn();
+    }
+  }
+  @include breakpoint("phablet", max) {
+    tr .hash {
+      width: 200px;
+    }
+  }
+  @include breakpoint("phone-wide", max) {
+    tr .age {
+      @include hideColumn();
+    }
+  }
+}
+
+@media (min-width: 1518px) {
+  table.data.block-table {
+    thead tr .height:before {
+      height: 0.07vw;
+    }
+    tbody td {
+      padding: 1.46vw 0.73vw !important;
+    }
+    tr th.height {
+      font-size: 1.02vw;
+      width: 4.75vw;
+      padding-left: 1.38vw !important;
+
+      &:before {
+        height: 1.02vw;
+      }
+    }
+
+    tr .hash {
+      font-size: 1.02vw;
+      width: 23.79vw !important;
+      height: 4.16vw !important;
+    }
+    tr .txns {
+      font-size: 1.02vw;
+      width: 4.75vw !important;
+      padding: 0 0.73vw;
+    }
+
+    tr .age {
+      font-size: 1.02vw;
+    }
+
+    tr .fee {
+      font-size: 1.02vw;
+    }
+
+    tr th {
+      padding: 0.73vw;
+      font-size: 1.02vw;
+    }
+
+    @include breakpoint("tablet-wide", max) {
+      table-layout: fixed;
+      thead th,
+      tbody td,
+      tbody th {
+        padding: 0.058vw 0.058vw;
+        font-size: 1.02vw;
+      }
+    }
+    @include breakpoint("tablet", max) {
+      tr .hash {
+        width: 18.3vw;
+      }
+    }
+    @include breakpoint("tablet-small", max) {
+      tr .hash {
+        width: 18.3vw;
+      }
+      tr .fee {
+        @include hideColumn();
+      }
+    }
+    @include breakpoint("phablet", max) {
+      tr .hash {
+        width: 14.64vw;
+      }
+    }
+    @include breakpoint("phone-wide", max) {
+      tr .age {
+        @include hideColumn();
+      }
+    }
+  }
+}

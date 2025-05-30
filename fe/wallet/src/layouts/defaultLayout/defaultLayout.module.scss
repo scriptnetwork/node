@@ -1,0 +1,45 @@
+@import '../../styles/breakPoints.scss';
+@import '../../styles/typography.scss';
+@import '../../styles/colors.scss';
+
+.layout {
+    &_main {
+        position: sticky;
+        left: 0;
+        min-height: 100vh;
+        height: 100%;
+        padding-top: 85px;
+        display: flex;
+
+        @include respond-to(md) {
+            padding-top: 48px;
+            z-index: 3;
+            height: max-content;
+        }
+
+        &_children {
+            margin-top: -25px;
+            min-height: 800px;
+            width: 100%;
+            overflow: hidden;
+            height: 100%;
+
+            @include respond-to(md) {
+                min-height: max-content;
+            }
+
+            &>h1 {
+                @extend %main-heading;
+                display: none;
+                
+                @include respond-to(md) {
+                    margin-top: 87px;
+                    display: block;
+                    color: $yellow-main;
+                    text-align: center;
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,49 @@
+#!/bin/bash
+
+build_mode="debug"
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+filter_errors() {
+    while read -r line; do
+        let is_error=0 #TODO: apply heuristics to determine line is error or debug
+        if [[ $is_error -eq 1 ]]; then
+            >&2 echo "$line"
+        else
+            echo "$line"
+        fi
+    done
+}
+
+build_install() {
+    rm -rf _output
+    pushd src > /dev/null
+	echo "Building in ${build_mode}:"
+	jobs=$(nproc --ignore=2)
+        make ${build_mode} -j$jobs
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 55009 error building scriptv"
+            exit 1
+        fi
+    popd > /dev/null
+    mkdir -p _output/lib
+    mkdir -p _output/bin
+    mv src/scriptv/libscriptv.so _output/lib/
+    mv src/cli/scriptv _output/bin/
+    echo "Output"
+    find _output -type f
+
+}
+
+build_install 2> >(filter_errors)
+if [[ $? -ne 0 ]]; then
+    >&2 echo "KO 50214"
+    exit 1
+fi
+exit 0
+

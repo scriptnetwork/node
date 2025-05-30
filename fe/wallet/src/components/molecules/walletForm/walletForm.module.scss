@@ -1,0 +1,75 @@
+@import "../../../styles/typography.scss";
+@import "../../../styles/colors.scss";
+@import "../../../styles/fonts.scss";
+
+.walletForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    &_bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        &_create {
+            display: flex;
+            gap: 5px;
+            @extend %main-paragraph;
+
+            &>p {
+                color: $white;
+            }
+
+            &>span {
+                color: $yellow-light;
+                cursor: pointer;
+
+                &:hover {
+                    color: $yellow-dark;
+                }
+            }
+        }
+    }
+
+    &_create {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        padding-top: 40px;
+
+        &_header {
+            font-family: $outfit;
+
+            span {
+                @extend %main-paragraph;
+                color: $dark-grey-100;
+            }
+
+            p {
+                @extend %main-paragraph;
+                letter-spacing: 1px;
+                color: $white;
+                font-weight: 600;
+                line-height: 26px;
+            }
+
+        }
+
+        &_container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+
+            &_checkbox {
+                display: flex;
+                gap: 10px;
+
+                span {
+                    @extend %main-notes;
+                    color: $dark-grey-100;
+                }
+            }
+        }
+    }
+}

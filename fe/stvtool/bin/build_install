@@ -1,0 +1,122 @@
+#!/bin/bash
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+filter_errors() {
+    while read -r line; do
+        let is_error=0 #TODO: apply heuristics to determine line is error or debug
+        if [[ $is_error -eq 1 ]]; then
+            >&2 echo "$line"
+        else
+            echo "$line"
+        fi
+    done
+}
+
+write_bashrc_aliases() {
+    if [[ "_${tgt_instance_identifier}" == "_" ]]; then
+        local sep=""
+    else
+        local sep="_"
+    fi
+    cat << EOF
+alias script${sep}${tgt_instance_identifier}="${gov__alias__script}"
+alias scriptcli${sep}${tgt_instance_identifier}="${wallet__alias__script}"
+
+EOF
+}
+
+create_bashrc() {
+    dir=$1
+    echo "create_bashrc"
+    local ofile="${dir}/.bashrc"
+    mkdir -p $(dirname ${ofile})
+    cat << EOF
+## ################################################################
+## Command aliases:  /home/${runuser}/.bashrc (append):
+## ################################################################
+EOF
+    write_bashrc_aliases | tee ${ofile} | sed 's~\(.*\)~## \1~'
+    cat << EOF
+## ################################################################
+
+EOF
+}
+
+convert_html_to_pdf() {
+    local input_file="$1"
+    local output_file="$2"
+
+    wkhtmltopdf --enable-local-file-access --background --margin-top 0 --margin-right 0 --margin-bottom 0 --margin-left 0 "$input_file" "$output_file"
+
+    if [ $? -ne 0 ]; then
+        echo "Error converting HTML to PDF."
+        exit 1
+    else
+        echo "PDF file generated: $output_file"
+    fi
+}
+
+convert_md_to_html() {
+    local input_file="$1"
+    local output_file="$2"
+    local title="$3"
+    local template_file="$4"
+
+    pandoc "$input_file" -f markdown -t html \
+        --metadata title="$title" \
+        --template="$template_file" \
+        -o "$output_file"
+
+    if [ $? -ne 0 ]; then
+        echo "Error converting Markdown to HTML."
+        exit 1
+    else
+        echo "HTML file generated: $output_file"
+    fi
+}
+
+build_install() {
+    runuser_output=_runuser
+    echo "runuser_output=${runuser_output}"
+    mkdir -p ${runuser_output}
+    cp -R runuser/* ${runuser_output}/
+    mkdir -p ${runuser_output}/lib
+    cp ../../lib/shenv ${runuser_output}/lib/
+    cp ../../lib/stcfg.env ${runuser_output}/lib/
+    mkdir -p ${runuser_output}/etc
+    cp dotool/env ${runuser_output}/etc/dotool.env
+    echo "tgt_path ${tgt_path}"
+    create_bashrc ${runuser_output}
+
+    local filename="script_tv__stvtool_manual__v1_11"
+    mkdir -p ${runuser_output}/doc
+    convert_md_to_html src/doc/manual.md ${runuser_output}/doc/${filename}.html "Script TV - nodeops - stvtool user manual" src/doc/template.html
+    cp src/doc/logo.png ${runuser_output}/doc/
+
+    convert_html_to_pdf ${runuser_output}/doc/${filename}.html ${runuser_output}/doc/${filename}.pdf
+
+    echo "OK generated _runuser"
+
+}
+
+if [[ ! -f dotool/env ]]; then
+    >&2 echo "KO 44039 dotool/env not found."
+    exit 1
+fi
+
+#cat dotool/env
+. dotool/env
+
+build_install 2> >(filter_errors)
+if [[ $? -ne 0 ]]; then
+    >&2 echo "KO 50214"
+    exit 1
+fi
+exit 0
+

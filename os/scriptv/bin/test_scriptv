@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+cd _output
+
+SCRIPTV="bin/scriptv"  # Change this if scriptv is in a different path
+
+echo "Running tests for scriptv..."
+
+# Check if scriptv is executable
+if ! command -v "$SCRIPTV" &> /dev/null; then
+    echo "KO 00000 scriptv not found or not executable"
+    exit 1
+fi
+
+echo "OK scriptv binary found"
+
+### **Test b58 Encoding/Decoding** ###
+echo "Hello World" > testfile.txt
+b58_encoded=$("$SCRIPTV" b58 encode testfile.txt)
+b58_decoded=$("$SCRIPTV" b58 decode -l "$b58_encoded")
+if [[ "$b58_decoded" != "Hello World" ]]; then
+    echo "KO 00000 b58 encoding/decoding failed"
+    exit 1
+fi
+echo "OK b58 encoding/decoding works"
+
+# Test piping input
+echo "Piped Message" | "$SCRIPTV" b58 encode - | "$SCRIPTV" b58 decode - > decoded.txt
+if [[ "$(cat decoded.txt)" != "Piped Message" ]]; then
+    echo "KO 00000 b58 pipe encoding/decoding failed"
+    exit 1
+fi
+echo "OK b58 encoding/decoding via pipe works"
+
+### **Test hex Encoding/Decoding** ###
+hex_encoded=$("$SCRIPTV" hex encode testfile.txt)
+hex_decoded=$("$SCRIPTV" hex decode -l "$hex_encoded")
+rm -f testfile.txt
+if [[ "$hex_decoded" != "Hello World" ]]; then
+    echo "KO 00000 hex encoding/decoding failed"
+    exit 1
+fi
+echo "OK hex encoding/decoding works"
+
+# Test piping input
+echo "Hex Pipe Test" | "$SCRIPTV" hex encode - | "$SCRIPTV" hex decode - > hex_decoded.txt
+if [[ "$(cat hex_decoded.txt)" != "Hex Pipe Test" ]]; then
+    echo "KO 00000 hex pipe encoding/decoding failed"
+    exit 1
+fi
+echo "OK hex encoding/decoding via pipe works"
+
+### **est EC Key Generation, Signing & Verification** ###
+ec_keys=$("$SCRIPTV" ec gen_keys)
+priv_key=$(echo "$ec_keys" | grep "^priv " | awk '{print $NF}')
+pub_key=$(echo "$ec_keys" | grep "^pub " | awk '{print $NF}')
+
+# Test signing a message
+msg_b58=$("$SCRIPTV" b58 encode -l "Test Message")
+signature=$("$SCRIPTV" ec sign "$msg_b58" "$priv_key" | awk '{print $NF}')
+
+# Verify the signed message
+verify_result=$("$SCRIPTV" ec verify "$msg_b58" "$signature" "$pub_key")
+if [[ "$verify_result" != "verifies Valid" ]]; then
+    echo "KO 00000 EC signing/verification failed"
+    exit 1
+fi
+echo "OK EC signing and verification works"
+
+# Test EC private key handling
+priv_result=$("$SCRIPTV" ec priv_key "$priv_key")
+if [[ -z "$priv_result" ]]; then
+    echo "KO 00000 EC private key processing failed"
+    exit 1
+fi
+echo "OK EC private key calculation works"
+
+### **Cleanup**
+rm -f testfile.txt decoded.txt hex_decoded.txt
+
+echo "OK ALL TESTS PASSED SUCCESSFULLY"
+exit 0

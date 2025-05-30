@@ -1,0 +1,77 @@
+#!/bin/bash
+
+if [[ -f system.env ]]; then
+    . system.env
+fi
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+npmwa() {
+    npm --version
+    if [[ $? -eq 0 ]]; then
+        return
+    fi
+    echo "############################################"
+    echo "## Warning"
+    echo "############################################"
+    echo "npm is not installed. Please install npm using the following commands:"
+    cat << EOF
+sudo apt update
+sudo apt install npm -y
+EOF
+}
+
+vars() {
+    if [[ "_${build_date}" == "_" ]]; then
+        build_date="$(date -u)"
+    fi
+    if [[ "_${git_version}" == "_" ]]; then
+        git_version="$(git rev-parse HEAD)"
+    fi
+}
+
+filter_errors() {
+    while read -r line; do
+        let is_error=0
+        if [[ $is_error -eq 1 ]]; then
+            >&2 echo "$line"
+        else
+            echo "$line"
+        fi
+    done
+}
+
+build_install() {
+    . ~/.nvm/nvm.sh
+    echo "type '. ~/.nvm/nvm.sh'"
+    nvm install 23
+    nvm use 23
+
+    npm install --legacy-peer-deps
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "Error: Failed to add react-scripts."
+        exit 1
+    fi
+    # Proceed with npm build
+    npm run build
+    if [[ $? -ne 0 ]]; then
+        >&2 npmwa
+        >&2 echo "KO 78222 Wallet FE Build Errors."
+        exit 1
+    fi
+}
+
+vars
+build_install 2> >(filter_errors)
+if [[ $? -ne 0 ]]; then
+    >&2 echo "KO 52249"
+    exit 1
+fi
+
+exit 0
+

@@ -1,0 +1,35 @@
+.breadcrumb-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    .current-page {
+        font-size: 28px;
+        line-height: 38px;
+        font-weight: 600;
+        color: $color-primary;
+        margin: 0;
+    }
+    .current-version {
+        font-size: 15px;
+        line-height: 25px;
+        font-weight: 200;
+        color: $color-white;
+        margin: 0;
+    }
+}
+
+@media (min-width: 1518px) {
+    .breadcrumb-wrapper {
+        margin: 1.46vw 0;
+        .current-page {
+            font-size: 2.04vw;
+            line-height: 2.87vw;
+        }
+        .current-version {
+            font-size: 1.09vw;
+            line-height: 1.83vw;
+        }
+    }    
+}

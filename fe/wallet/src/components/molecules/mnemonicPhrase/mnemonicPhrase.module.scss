@@ -1,0 +1,146 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+
+.mnemonicPhrase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 60%;
+    padding-top: 40px;
+
+    &_container {
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+
+        &_header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+
+            h2 {
+                @extend %main-paragraph;
+                font-weight: 600;
+                text-transform: uppercase;
+                color: $white;
+                margin: 0;
+            }
+
+            p {
+                @extend %main-paragraph;
+                color: $blue-200;
+            }
+        }
+
+        &_main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+
+            img {
+                height: 116px;
+            }
+
+            p {
+                @extend %main-paragraph;
+                color: $red-700;
+                padding: 15px 0 10px 0;
+            }
+
+            span {
+                @extend %main-paragraph;
+                max-width: 310px;
+                color: $blue-200;
+                line-height: 20px;
+            }
+
+            &_phrase {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                &>p {
+                    @extend %main-paragraph;
+                    color: $white;
+                    padding: 5px 0 30px 0;
+                    line-height: 20px;
+                }
+
+                &_12 {
+                    text-align: center;
+                    background: $blue-400;
+                    padding: 6px;
+                    border-radius: 4px;
+
+                    p {
+                        @extend %main-paragraph;
+                        color: $white;
+                        font-weight: 900;
+                        padding: 14px;
+                        word-spacing: 6px;
+                        line-height: 25px;
+                    }
+                }
+
+                span {
+                    @extend %main-paragraph;
+                    color: $white;
+                    margin-top: 25px;
+                    display: block;
+
+                    &:hover {
+                        cursor: pointer;
+                        color: $dark-grey-400;
+                    }
+                }
+
+                &_key {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 10px;
+                    border-radius: 6px;
+                    border: 1px solid $white;
+                    width: max-content;
+                    margin-bottom: -25px;
+
+                    p {
+                        @extend %main-paragraph;
+                        color: $orange-500;
+                    }
+                }
+            }
+        }
+
+        &_footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+
+            &_unlock {
+                display: flex;
+                gap: 5px;
+                @extend %main-paragraph;
+
+                &>p {
+                    color: $white;
+                }
+
+                &>span {
+                    color: $yellow-light;
+                    cursor: pointer;
+
+                    &:hover {
+                        color: $yellow-dark;
+                    }
+                }
+            }
+        }
+    }
+}

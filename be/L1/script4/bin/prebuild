@@ -1,0 +1,82 @@
+#!/bin/bash
+
+prepare_sources__0() {
+    local url="https://github.com/scriptnetwork/script-4"
+    local branch="master"
+
+    echo "Sourcecode from $url branch $branch"
+    mkdir -p _gohome
+    pushd _gohome > /dev/null
+        export GOPATH=$(pwd)
+    popd > /dev/null
+    if [ ! -L src ]; then
+        ln -s _gohome/src/github.com/scripttoken/script src
+    fi
+    echo "GOPATH=${GOPATH}"
+    mkdir -p $GOPATH/src/github.com/scripttoken
+    pushd $GOPATH/src/github.com/scripttoken > /dev/null
+        if [[ ! -d script ]]; then
+            echo "git clone -b ${branch} --single-branch ${url} script"
+            git clone -b ${branch} --single-branch ${url} script
+            r=$?
+            if [[ $r -ne 0 ]]; then
+                1>&2 echo "KO 40397 clone"
+                exit 1
+            fi
+            echo "cloned source code"
+            pushd script > /dev/null
+                version_number="$(cat version/version_number.txt)"
+                cat << EOF > version/version_generated.go
+package version
+const (
+Timestamp = "N/A"
+Version = "N/A"
+GitHash = "N/A"
+)
+
+EOF
+            popd > /dev/null
+        else
+            echo "source code already obtained"
+        fi
+    popd > /dev/null
+}
+
+prebuild() {
+    prepare_sources__0
+
+    output=_output
+    mkdir -p ${output}
+    export GOBIN=$(realpath _output)
+    echo "GOBIN=${GOBIN}"
+    curdir=$(pwd)
+
+    pushd _gohome > /dev/null
+        export GOPATH=$(pwd)
+        export SCRIPT_HOME=$GOPATH/src/github.com/scripttoken/script
+        echo "GOPATH=${GOPATH}"
+        echo "SCRIPT_HOME=${SCRIPT_HOME}"
+        pushd ${SCRIPT_HOME} > /dev/null
+            echo "compiling in ${build_mode} mode from $(pwd)"
+            export GO111MODULE=on
+            go install -ldflags "-s -w" ./cmd/... ./integration/tools/...
+            r=$?
+            if [[ $r -ne 0 ]]; then
+                >&2 echo "KO 79682 Compile"
+                exit 1
+            fi
+        popd > /dev/null
+    popd > /dev/null
+}
+
+if [[ ! -x scriptcli || ! -x generate_genesis ]]; then
+    rm -f scriptcli
+    rm -f generate_genesis
+    prebuild
+    mv _output/generate_genesis .
+    mv _output/scriptcli .
+    make clean
+fi
+
+exit 0
+

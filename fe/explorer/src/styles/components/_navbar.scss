@@ -1,0 +1,111 @@
+.navbar-container {
+  background-color: $color-dark-gray;
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  .logo-wrapper {
+    Link {
+      img {
+        height: 100%;
+        width: 100%;
+      }
+    }
+  }
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    margin: auto 0;
+    input {
+      width: 400px;
+      font-size: 19px;
+      line-height: 29px;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+    .menu-wrapper {
+      padding: 0 10px;
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .navbar-container {
+    .input-wrapper {
+      input {
+        width: 200px;
+      }
+      .menu-wrapper {
+        padding: 0 10px;
+        display: inherit;
+        height: 20px;
+        width: 100%;
+        cursor: pointer;
+        img {
+          height: 100%;
+          width: 100%;
+          filter: invert(1);
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 1518px) {
+  .navbar-container {
+    padding: 0.73vw;
+    border-radius: 0.73vw;
+    margin-bottom: 0.73vw;
+    .logo-wrapper {
+      a {
+        img {
+          height: 100%;
+        }
+      }
+    }
+    .input-wrapper {
+      input {
+        width: 29.28vw;
+        font-size: 1.17vw;
+        line-height: 1.12vw;
+        padding: 0.73vw 1.46vw;
+        border-radius: 0.73vw;
+      }
+      .menu-wrapper {
+        padding: 0 0.73vw;
+        display: none;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 10px;
+    .input-wrapper {
+      input {
+        width: 100%;
+      }
+      .menu-wrapper {
+        width: inherit;
+      }
+    }
+  }
+}
+@media (min-width: 600px) and (max-width: 800px) {
+  .navbar-container {
+    flex-direction: row;
+  }
+}
+@media screen and (min-width: 1518px) {
+  #dashboard-layout .side-nav-wrapper {
+    // width: 6.25vw;
+    width: 15.25vw;
+  }
+}

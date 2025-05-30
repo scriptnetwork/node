@@ -1,0 +1,21 @@
+#!/bin/bash
+
+wai=$(whoami)
+
+if [ $wai = "root" ]; then
+    echo "changing to user stv. type exit to return back to root"
+    exec su - stv
+elif [ $wai = "stv" ]; then
+    pwd=$(pwd)
+    if [ $pwd = "/home/stv" ]; then
+        >&2 echo "KO 44938 alias stv not defind. Please execute: "
+        >&2 echo "alias=bin/stvtool"
+        exit 1
+    else
+        pushd /home/stv > /dev/null
+            echo "executing in $pwd"
+            bin/stvtool $@
+        popd > /dev/null
+    fi
+fi
+exit 0

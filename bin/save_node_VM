@@ -1,0 +1,73 @@
+#!/bin/bash
+
+vm=$1
+
+if [[ -z "$vm" ]]; then
+  bin/configure leases | grep "VM Aliases" -A10000
+  >&2 echo "KO 66096"
+  exit 1
+fi
+
+lovm=$(echo ${vm,,} | sed "s~_~~g")
+
+
+node_vm() {
+dir=$(bin/configure leases | grep "VM Aliases" -A10000 | grep "$vm" | awk '{ print $3"__"$2 }')
+if [[ -z "$dir" ]]; then
+  >&2 echo "KO 66095"
+  exit 1
+fi
+cat << EOF
+ssh root@$lovm.cto.script.tv "script_tv__ctl.sh stop && \
+script_tv__ctl.sh move_node_state && \
+cd /home && \
+rm -f stv.tgz && \
+tar -czf stv.tgz stv && \
+cd && \
+mv script_tv__temp_state/home/stv/script4/gov/db . && \
+mv script_tv__temp_state/var/lib/mongodb . && \
+tar -czf script_tv__temp_state__light.tgz script_tv__temp_state && \
+mv db script_tv__temp_state/home/stv/script4/gov/ && \
+mv mongodb script_tv__temp_state/var/lib/ && \
+script_tv__ctl.sh restore_node_state && \
+script_tv__ctl.sh start" && \
+rm -rf aws/$dir && \
+mkdir -p aws/$dir/root/script_tv__temp_state && \
+mkdir -p aws/$dir/home && \
+ssh root@$lovm.cto.script.tv "cat /proc/cpuinfo && df -h" > aws/$dir/cpu && \
+scp root@$lovm.cto.script.tv:/home/stv.tgz aws/$dir/home/ && \
+scp root@$lovm.cto.script.tv:/root/script_tv__t* aws/$dir/root/
+EOF
+}
+
+dns_mail_vm() {
+dir=$(bin/configure leases | grep "$vm" | grep INF_DNS | awk '{ print $3"__"$2 }')
+if [[ -z "$dir" ]]; then
+  >&2 echo "KO 66095"
+  exit 1
+fi
+cat << EOF
+rm -rf aws/$dir && \
+mkdir -p aws/$dir/etc/bind && \
+ssh root@$lovm.cto.script.tv "cat /proc/cpuinfo && df -h" > aws/$dir/cpu && \
+ssh root@$lovm.cto.script.tv "history" > aws/$dir/history && \
+ssh root@$lovm.cto.script.tv "ps aux" > aws/$dir/ps && \
+ssh root@$lovm.cto.script.tv "cd /etc && \
+rm -f postfix.tgz && \
+tar -czf postfix.tgz postfix && \
+cd /etc && \
+rm -f dkimkeys.tgz && \
+tar -czf dkimkeys.tgz dkimkeys && \
+cd /etc/bind && \
+rm -f zones.tgz && \
+tar -czf zones.tgz zones" && \
+scp root@$lovm.cto.script.tv:/etc/bind/zones.tgz aws/$dir/etc/bind/ && \
+scp root@$lovm.cto.script.tv:/etc/bind/named.conf.local aws/$dir/etc/bind/ && \
+scp root@$lovm.cto.script.tv:/etc/postfix.tgz aws/$dir/etc/ && \
+scp root@$lovm.cto.script.tv:/etc/opendkim.conf aws/$dir/etc/ && \
+scp root@$lovm.cto.script.tv:/etc/dkimkeys.tgz aws/$dir/etc/
+EOF
+}
+
+#node_vm
+dns_mail_vm

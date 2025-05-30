@@ -1,0 +1,225 @@
+table.data {
+  border-collapse: collapse;
+  width: 100%;
+
+  .clickable-row {
+    tr td {
+      cursor: pointer;
+    }
+  }
+
+  thead th,
+  tbody td,
+  tbody th {
+    text-align: left;
+    padding: 12px 12px;
+    font-size: 16px;
+    padding-left: 4px;
+  }
+  thead {
+    th {
+      // text-transform: lowercase;
+      font-size: 16px;
+      font-weight: $weight-semi;
+      color: $color-font-light;
+      // font-family: 'gilroy' !important;
+    }
+  }
+  tbody {
+    tr {
+      background-color: $color-table-row;
+      &:nth-child(2n) {
+        background-color: $color-table-row-alt;
+      }
+      &:hover td {
+        background-color: lighten($color-table-row, 5%);
+      }
+    }
+    td,
+    th {
+      color: $color-font-main;
+    }
+  }
+
+  tbody td.hash {
+    white-space: nowrap;
+  }
+
+  tbody td.overflow {
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+
+  th.left,
+  td.left {
+    text-align: left;
+  }
+  th.center,
+  td.center {
+    text-align: center;
+  }
+  th.right,
+  td.right {
+    text-align: right;
+  }
+}
+
+$th-width: 150px;
+$th-width-wide: 230px;
+table.details {
+  width: 100%;
+  table-layout: fixed;
+  margin-bottom: 48px;
+  background-color: $color-panel;
+  thead tr {
+    th:first-child {
+      width: 7rem;
+      border-bottom: none;
+      padding-left: 1rem;
+      vertical-align: top;
+    }
+    th {
+      // font-family: $font-body;
+      color: $color-font-light;
+      text-align: left;
+      border-bottom: 1px solid $color-line;
+      padding: 1rem 1rem 1rem 0;
+      font-size: 1.125rem;
+      font-weight: $weight-semi;
+    }
+  }
+  tbody.cp tr th {
+    width: $th-width-wide;
+  }
+  tbody tr {
+    th,
+    td {
+      padding: 1rem 1rem 1rem 0;
+    }
+    th {
+      width: $th-width;
+      white-space: nowrap;
+      text-align: left;
+      // text-transform: lowercase;
+      color: $color-font-light;
+      font-size: 0.875rem;
+      font-weight: $weight-medium;
+      padding-left: 1rem;
+      vertical-align: top;
+    }
+    td {
+      width: 75%;
+      text-align: left;
+      border-bottom: 1px solid $color-line;
+    }
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+  @include breakpoint("phablet", max) {
+    tbody tr th {
+      width: 125px;
+    }
+  }
+}
+
+@media (min-width: 1518px) {
+  table.data {
+    thead th,
+    tbody td,
+    tbody th {
+      padding: 0.87vw 0.87vw;
+      font-size: 1.17vw;
+      padding-left: 0.29vw;
+    }
+    thead {
+      th {
+        // text-transform: lowercase;
+        font-size: 1.17vw;
+      }
+    }
+    tbody {
+      tr {
+        background-color: $color-table-row;
+        &:nth-child(2n) {
+          background-color: $color-table-row-alt;
+        }
+        &:hover td {
+          background-color: lighten($color-table-row, 5%);
+        }
+      }
+      td,
+      th {
+        color: $color-font-main;
+      }
+    }
+
+    tbody td.hash {
+      white-space: nowrap;
+    }
+
+    tbody td.overflow {
+      white-space: nowrap;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
+
+    th.left,
+    td.left {
+      text-align: left;
+    }
+    th.center,
+    td.center {
+      text-align: center;
+    }
+    th.right,
+    td.right {
+      text-align: right;
+    }
+  }
+
+  $th-width: 10.98vw;
+  $th-width-wide: 16.83vw;
+  table.details {
+    margin-bottom: 3.51vw;
+
+    thead tr {
+      th:first-child {
+        width: 8.19vw;
+        padding-left: 1.17vw;
+      }
+      th {
+        // font-family: $font-body;
+        border-bottom: 0.07vw solid $color-line;
+        padding: 1.17vw 1.17vw 1.17vw 0;
+        font-size: 1.31vw;
+      }
+    }
+    tbody tr {
+      th,
+      td {
+        padding: 1.17vw 1.17vw 1.17vw 0;
+      }
+      th {
+        width: $th-width;
+        font-size: 1.02vw;
+        padding-left: 1.17vw;
+      }
+      td {
+        width: 75%;
+        text-align: left;
+        border-bottom: 0.07vw solid $color-line;
+        font-size: 1.02vw;
+      }
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+    @include breakpoint("phablet", max) {
+      tbody tr th {
+        width: 9.15vw;
+      }
+    }
+  }
+}

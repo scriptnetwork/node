@@ -1,0 +1,5 @@
+#!/bin/bash
+
+scp runuser/bin/stvtool root@vmlon05.cto.script.tv:/var/www/script_tv/fe/download/files/hotfix/stvtool_
+ssh root@vmlon05.cto.script.tv "rm -f /var/www/script_tv/fe/download/files/hotfix/stvtool; mv /var/www/script_tv/fe/download/files/hotfix/stvtool_ /var/www/script_tv/fe/download/files/hotfix/stvtool"
+

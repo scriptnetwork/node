@@ -1,0 +1,32 @@
+{
+  "name": "explorer-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "run.js",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "bignumber.js": "^8.0.1",
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "eth-lib": "^0.2.8",
+    "ethers": "^5.6.9",
+    "express": "^4.16.3",
+    "lodash": "^4.17.21",
+    "mongodb": "^3.1.13",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.5",
+    "socketio": "^1.0.0",
+    "swagger-autogen": "^2.23.7"
+  },
+  "scripts": {
+    "doc_rpc": "node ./doc_rpc.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "resolutions": {
+    "elliptic": "6.6.1",
+    "socket.io-parser": "3.3.4"
+  }
+}

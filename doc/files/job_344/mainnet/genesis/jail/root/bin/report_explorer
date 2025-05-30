@@ -1,0 +1,91 @@
+#!/bin/bash
+
+. /home/stv/etc/dotool.env
+
+help() {
+	cat << EOF
+
+EOF
+
+}
+
+
+url=${explorer__api_URL__local}
+#echo "url=$url"
+
+hf1=1124230
+curh=1269341
+
+cp0=1124001
+cp0=1001
+
+acc() {
+a=$1
+#-H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0' 
+#-H 'Accept-Language: en-GB,en;q=0.5'
+#-H 'Accept-Encoding: gzip, deflate, br, zstd'
+#-H 'Origin: https://explorer-mainnet.script.tv'
+# -H 'Connection: keep-alive'
+# -H 'Referer: https://explorer-mainnet.script.tv/'
+# -H 'Sec-Fetch-Dest: empty'
+# -H 'Sec-Fetch-Mode: cors' 
+#-H 'Sec-Fetch-Site: same-site'
+# -H 'If-None-Match: W/"81d0-PSZUxQitYrsJ54Bn4AKtrgLNEH0"'
+# -H 'Priority: u=0'
+# -H 'Accept: application/json, text/plain, */*' \
+
+#	json=$(curl -s $url/transactions/range?pageNumber=1&limit=1)
+#curl -s 'https://backend-explorer-mainnet.script.tv/api/account/update/0x67b80fa3e1FE18540DF37873a0269c36094e841A'
+#echo $url/account/$a
+json=$(curl -s $url/account/update/$a)
+
+echo $json | jq -e '.type == "error_not_found"' > /dev/null
+if [[ $? -eq 0 ]]; then
+	echo "$a 0"
+	return
+fi
+
+spay=$(echo $json |  jq -r '.body.balance.spaywei')
+echo -n "$a $spay "
+
+
+json=$(curl -s "$url/accounttx/$a?type=5&pageNumber=1&limitNumber=20&isEqualType=false")
+
+n=$(echo $json | jq -r '
+  .body 
+  | map(select(.type == 0)) 
+  | "\(. | length) "
+')
+
+if [[ $n -eq 0 ]]; then
+	echo $n
+	return
+fi
+
+echo $json | jq -r '
+  .body 
+  | map(select(.type == 0)) 
+  | "\(. | length) \((map(.timestamp | tonumber) | min | now - . | floor / 86400 | floor)) \((map(.timestamp | tonumber) | max | now - . | floor / 86400 | floor))"
+'
+
+#echo $json | jq
+#exit 1
+}
+
+cmd=$1
+shift
+if [[ -z $cmd ]]; then
+	help
+	exit 0
+fi
+
+if [[ $cmd == "a" ]]; then
+	cat licenses.txt | while read -r line; do
+		a=$(echo $line | awk '{print $1}')
+#a=0x0194739f49fe0b3042cb8c2ed30b423f470bec5a
+		acc $a
+#exit 1
+	done
+fi
+
+

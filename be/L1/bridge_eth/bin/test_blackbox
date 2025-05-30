@@ -1,0 +1,12 @@
+#!/bin/bash
+
+url="https://eth-node-testnet.stage.cto.script.tv/rpc"
+
+echo "KO Untested"
+
+test__0() {
+	curl -k -X POST  -H "Content-Type: application/json" -d '{}' $url
+
+	echo 'expected: {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"invalid request"}}'
+}
+

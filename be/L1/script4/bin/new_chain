@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+
+generate_genesis -chainID=scriptnet -erc20snapshot=./data/genesis_script_erc20_snapshot.json -stake_deposit=./data/genesis_stake_deposit.json -genesis=./genesis
+

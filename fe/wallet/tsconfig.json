@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "useUnknownInCatchVariables": false,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "esnext",
+        "moduleResolution": "Node",
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "baseUrl": "./src"
+    },
+    "include": ["src", "global.d.ts", "webpack.config.js"]
+}

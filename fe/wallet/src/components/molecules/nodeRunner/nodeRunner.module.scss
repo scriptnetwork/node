@@ -1,0 +1,61 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/breakPoints.scss';
+@import '../../../styles/typography.scss';
+
+.nodeRunner {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 63px;
+    color: $white;
+
+    &_container {
+        width: 60%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        background-color: $dark-grey-700;
+        border-radius: 20px;
+        gap: 10px;
+        padding: 40px 34px;
+        align-items: center;
+
+        h1 {
+            @extend %main-heading;
+            text-align: center;
+            color: $yellow-dark;
+            text-decoration: underline;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+    }
+
+    label {
+        @extend %main-paragraph;
+    }
+
+    @include respond-to(md) {
+        margin: 30px 0;
+
+        &_container {
+            gap: 16px;
+        }
+    }
+
+    @include respond-to(sm) {
+        margin: 20px 0;
+
+        &_container {
+            width: 80%;
+            padding: 20px 14px;
+        }
+    }
+
+    @include respond-to(xs) {
+        &_container {
+            width: 90%;
+            gap: 8px;
+            padding: 16px 10px;
+        }
+    }
+}

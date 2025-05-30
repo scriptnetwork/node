@@ -1,0 +1,21 @@
+.chart {
+  position: relative;
+  width: 100%;
+  margin: auto 0;
+  cursor: pointer;
+  &.line {
+    width: 100%;
+    height: 100%;
+  }
+  @include breakpoint("phablet", max) {
+    width: 130%;
+  }
+}
+
+@media (max-width: 5464px) AND (min-width: 1604px) {
+  .chart {
+    &.line {
+      margin: 0.8vw 0 0 0;
+    }
+  }
+}

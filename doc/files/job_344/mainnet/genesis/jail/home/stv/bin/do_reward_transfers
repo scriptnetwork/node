@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+cat rewards_payout__2025_01_10__1736524004__transfers.txt | while read -r line; do
+	addr=$(echo "$line" | awk '{ print $1 }')
+	spay=$(echo "$line" | awk '{ print $2 }')
+
+	echo "* $addr <<- $spay"
+
+	bin/stvtool -batch --to $addr --spay $spay --scpt 0 transfer
+
+
+
+done

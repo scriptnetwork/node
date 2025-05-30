@@ -1,0 +1,28 @@
+.content.stakes{
+  .chart{
+    width: 30%;
+    margin: 0 35%;
+    @include breakpoint('tablet-wide', max) {
+      width: 50%;
+      margin: 0 25%;
+    }
+  }
+  .legend{
+    margin-top: 15px;
+    padding-bottom: 20px;
+    font-size: 12px;
+    color: $color-font-light;
+    border-bottom: 1px solid rgba($color-font-light, 0.2);
+    // text-transform: lowercase;
+  }
+  .table-container{
+    display: flex;
+    justify-content: space-between;
+    .stakes.half{
+      margin-top: 30px;
+    }
+    @include breakpoint('phablet', max) {
+      flex-wrap: wrap;
+    }
+  }
+}

@@ -1,0 +1,78 @@
+#!/bin/bash
+if [[ -f system.env ]]; then
+    . system.env
+fi
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+function vars {
+    if [[ "_${build_date}" == "_" ]]; then
+        build_date="$(date -u)"
+    fi
+    if [[ "_${git_version}" == "_" ]]; then
+        git_version="$(git rev-parse HEAD)"
+    fi
+}
+
+function filter_errors {
+    while read -r line; do
+        let is_error=0 #TODO: apply heuristics to determine line is error or debug
+        if [[ is_error -eq 1 ]]; then
+            >&2 echo "$line"
+        else
+            echo "$line"
+        fi
+    done
+}
+
+function build_install {
+    nvm install 23
+    nvm use 23
+#    npm install
+
+
+    npm install --legacy-peer-deps
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78221 build errors."
+        exit 1
+    fi
+
+    # Rebuild Sass module
+    npm rebuild sass
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78222 build errors."
+        exit 1
+    fi
+
+    # Rebuild Sass module
+    npm install sass --legacy-peer-deps
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78223 build errors."
+        exit 1
+    fi
+
+    npm install react-icons --legacy-peer-deps
+
+
+
+    npm run build
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78224 build errors."
+        exit 1
+    fi
+
+}
+
+vars
+build_install 2> >(filter_errors)
+if [[ $? -ne 0 ]]; then
+    >&2 echo "KO 55049"
+    exit 1
+fi
+exit 0
+

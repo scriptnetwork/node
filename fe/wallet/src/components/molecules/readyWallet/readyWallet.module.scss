@@ -1,0 +1,39 @@
+@import "../../../styles/colors.scss";
+@import "../../../styles/typography.scss";
+
+.readyWallet {
+    width: 100%;
+    height: 100%;
+    padding-top: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &_container {
+        max-width: 370px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        img {
+            height: 116px;
+        }
+
+        h3 {
+            @extend %main-paragraph;
+            font-weight: 600;
+            line-height: 20px;
+            color: $blue-300;
+            text-transform: uppercase;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            @extend %main-paragraph;
+            font-weight: 600;
+            line-height: 20px;
+            color: $blue-200;
+            padding-bottom: 70px;
+        }
+    }
+}

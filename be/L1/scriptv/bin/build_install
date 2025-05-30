@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+if [[ -f system.env ]]; then
+    . system.env
+fi
+
+if [[ "_$1" != "_" ]]; then
+    if [[ "_${build_mode}" != "_$1" ]]; then
+        echo "Overriding build_mode: ${build_mode}. New value: $1"
+        build_mode=$1
+    fi
+fi
+
+function filter_errors {
+    while read -r line; do
+        let is_error=0 #TODO: apply heuristics to determine line is error or debug
+        if [[ is_error -eq 1 ]]; then
+            >&2 echo "$line"
+        else
+            echo "$line"
+        fi
+    done
+}
+
+function prepare_sources__0 {
+	local url="https://github.com/scriptnetwork/scriptv"
+	local branch="master"
+	echo "Sourcecode from $url branch $branch"
+    rm src -rf
+    echo "git clone -b ${branch} --single-branch ${url} src0"
+    git clone -b ${branch} --single-branch ${url} src0
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        1>&2 echo "KO 80397 clone"
+        exit 1
+    fi
+    pushd src0/core0/us >/dev/null
+        bin/apply_brand ../../core1/brands/scriptv
+    popd >/dev/null
+    mv src0/core0/us/brand_scriptv src
+    rm -rf src0
+}
+
+function build_install {
+    prepare_sources__0
+    pushd src/us >/dev/null
+        bin/configure
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 77065"
+            exit 1
+        fi
+    popd >/dev/null
+    pushd src/us >/dev/null
+        make distr
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 77066"
+            exit 1
+        fi
+    popd >/dev/null
+    mv src/us/distr .
+    rm src -rf
+    mkdir -p jail
+    sed -i 's~^PREFIX=/usr/local~PREFIX=./jail~' distr/makefile
+
+    echo "produced dir distr"
+}
+
+build_install 2> >(filter_errors)
+if [[ $? -ne 0 ]]; then
+    >&2 echo "KO 52249"
+    exit 1
+fi
+exit 0
+

@@ -1,0 +1,57 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    width: 251px;
+    transition: transform 0.3s;
+    background-color: $dark-grey-700;
+
+    @include respond-to(md) {
+        transform: translate(-100%);
+        position: fixed;
+        min-height: calc(100vh - 48px);
+        padding-top: 55px;
+        z-index: 5;
+    }
+
+    &_item {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        color: $dark-grey-300;
+        padding: 12px 16px 12px 16px;
+
+        &:hover {
+            cursor: pointer;
+            color: $dark-grey-500;
+        }
+
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        p {
+            @extend %main-paragraph;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    }
+
+    .active {
+        color: $black;
+        background-color: $yellow-dark;
+        border-radius: 5px;
+    }
+}
+
+@include respond-to(md) {
+    .open {
+        transform: translate(0) !important;
+    }
+}

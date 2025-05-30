@@ -1,0 +1,249 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.header {
+    &_desktop {
+        width: 100%;
+        display: flex;
+        background-color: $dark-grey-700;
+        height: 85px;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        z-index: 2;
+
+        &_sidebar {
+            width: 251px;
+            display: flex;
+            padding-left: 30px;
+            min-width: 251px;
+
+            svg {
+                width: 129px;
+                height: 55px;
+            }
+        }
+
+        &_container {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 27px;
+            align-items: center;
+            width: 100%;
+
+            & > p {
+                @extend %heading-3;
+                color: $yellow-main;
+                text-transform: capitalize;
+            }
+
+            &_account {
+                display: flex;
+                gap: 11px;
+                align-items: center;
+
+                p {
+                    @extend %main-paragraph;
+                    color: $white;
+                }
+
+                span {
+                    @extend %main-paragraph;
+                    color: $yellow-main;
+                }
+
+                & > div:first-child {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-end;
+                    gap: 3px;
+
+                    div {
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+
+                        svg:hover {
+                            cursor: pointer;
+                            opacity: 0.5;
+                        }
+                    }
+                }
+
+                &_circle {
+                    position: relative;
+                    border-radius: 50%;
+                    background-color: $yellow-main;
+                    height: 50px;
+                    width: 50px;
+
+                    div {
+                        border-radius: 50%;
+                        position: absolute;
+                        top: -3px;
+                        right: -3px;
+                        background-color: $green-400;
+                        height: 21px;
+                        width: 21px;
+                    }
+                }
+            }
+        }
+
+        @include respond-to(md) {
+            display: none;
+        }
+    }
+
+    &_mobile {
+        display: none;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 50;
+        background-color: $black;
+
+        @include respond-to(md) {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            &_logo {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                &_container {
+                    width: calc(100% - 40px);
+                    height: 48px;
+                    border-bottom: 1px solid #353535;
+
+                    svg {
+                        width: 90px;
+                    }
+                }
+            }
+
+            &_container {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                background: linear-gradient(to right, $dark-grey-700 0 251px, transparent 0 251px);
+                background-position: -251px 0;
+                background-size: calc(100% + 251px) 100%;
+                transition: background-position 0.3s;
+
+                &_content {
+                    margin-top: 15px;
+                    width: calc(100% - 40px);
+                    display: flex;
+                    justify-content: space-between;
+
+                    & > p {
+                        font-family: $outfit;
+                        color: $yellow-main;
+                        text-transform: capitalize;
+                    }
+
+                    & > svg {
+                        padding: 8px;
+                        background-color: $yellow-light;
+                        border-radius: 50%;
+                        width: 32px;
+                        height: 32px;
+                        min-width: 32px;
+                        position: relative;
+                        z-index: 5;
+                        margin-right: 5px;
+                    }
+
+                    &_account {
+                        display: flex;
+                        gap: 11px;
+                        align-items: center;
+                        white-space: nowrap;
+
+                        p {
+                            color: $white;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            overflow: hidden;
+
+                            @include respond-to(sm) {
+                                max-width: 200px;
+                            }
+
+                            @include respond-to(xs) {
+                                max-width: 100px;
+                            }
+                        }
+
+                        span {
+                            color: $yellow-main;
+                            padding-right: 5px;
+                        }
+
+                        & > div:first-child {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: flex-end;
+                            gap: 3px;
+
+                            div {
+                                display: flex;
+                                gap: 5px;
+                                align-items: center;
+
+                                svg{
+                                    @include respond-to(sm) {
+                                        width: 20px;
+                                        height: 20px;
+                                        min-width: 20px;
+                                    }
+
+                                    @include respond-to(xs) {
+                                        width: 16px;
+                                        height: 16px;
+                                        min-width: 16px;
+                                    }
+
+                                    &:hover {
+                                        cursor: pointer;
+                                        opacity: 0.5;
+                                    }
+                                }
+                            }
+                        }
+
+                        &_circle {
+                            position: relative;
+                            border-radius: 50%;
+                            background-color: $yellow-main;
+                            height: 30px;
+                            width: 30px;
+                            min-width: 30px;
+
+                            div {
+                                border-radius: 50%;
+                                position: absolute;
+                                top: -1px;
+                                right: -1px;
+                                background-color: $green-400;
+                                height: 12px;
+                                width: 12px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@include respond-to(md) {
+    .sidebarOpened {
+        background-position: 0 0;
+    }
+}

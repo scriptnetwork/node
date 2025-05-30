@@ -1,0 +1,5 @@
+/scriptv/libscriptv.so
+/cli/scriptv
+/cli/logs
+*.o
+/logs

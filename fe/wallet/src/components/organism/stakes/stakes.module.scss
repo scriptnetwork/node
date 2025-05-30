@@ -1,0 +1,121 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.stakes {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    color: $white;
+    padding: 63px 27px;
+
+    h2 {
+        @extend %main-heading;
+
+        @include respond-to(sm) {
+            color: $yellow-dark;
+            text-decoration: underline;
+        }
+
+        @include respond-to(xs) {
+            color: $yellow-dark;
+            text-decoration: underline;
+        }
+    }
+
+    label {
+        @extend %main-paragraph;
+    }
+
+    &_reverse{
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        min-height: 20px;
+        cursor: pointer;
+
+        &:hover{
+            opacity: 0.6;
+        }
+    }
+
+    &_container {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 20px;
+        background-color: $dark-grey-700;
+        padding: 30px 26px;
+
+        &>div {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            white-space: nowrap;
+        }
+
+        &_mobile_modal{
+            position: relative;
+
+            &>button{
+                position: absolute;
+                right: 0;
+                width: 22px;
+                height: 22px;
+                padding:  0;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid $dark-grey-300;
+                color: $dark-grey-300;
+            }
+        }
+
+        &_buttons{
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    @include respond-to(md) {
+        margin: 30px 0;
+
+        &_container {
+            gap: 24px;
+
+            &_nextStep{
+                background-color: #101011;
+            }
+        }
+    }
+
+    @include respond-to(sm) {
+        margin: 20px 0;
+        padding: 0;
+
+        &_container {
+            width: 80%;
+            padding: 20px 14px;
+            flex-direction: column;
+            gap: 20px;
+
+            &>div {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    }
+
+    @include respond-to(xs) {
+        &_container {
+            width: 90%;
+            padding: 16px 10px;
+        }
+    }
+}

@@ -1,0 +1,129 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/typography.scss';
+@import '../../../styles/breakPoints.scss';
+
+.select {
+    position: relative;
+    width: 100%;
+
+    svg {
+        transition: all 0.3s;
+    }
+
+    &>label {
+        @extend %main-paragraph;
+        color: $white;
+    }
+
+    &_selected {
+        @extend %main-paragraph;
+        background-color: #1a1a1a;
+        height: 50px;
+        color: white;
+        border-radius: 4px;
+        border: 1px solid $dark-grey-400;
+        outline: none;
+        padding-left: 12px;
+        padding-right: 12px;
+        width: 100%;
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        &:focus {
+            color: #495057;
+            background-color: #fff;
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.1rem rgb(255 239 0 / 55%);
+        }
+
+        &>div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 100%;
+
+            img,
+            svg {
+                height: 50%;
+                width: auto;
+            }
+        }
+
+        &>svg {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translate(0, -50%);
+        }
+
+        @include respond-to(sm) {
+            height: 50px !important;
+        }
+
+        @include respond-to(xs) {
+            height: 40px !important;
+        }
+    }
+
+    &_active {
+        color: #495057 !important;
+        background-color: #fff !important;
+        border-color: #80bdff !important;
+        outline: 0;
+
+        &>svg {
+            rotate: 180deg;
+            color: $black;
+            transform: translate(0, 50%);
+        }
+    }
+
+    &_options {
+        background-color: #1a1a1a;
+        position: absolute;
+        z-index: 999;
+        width: 100%;
+        border: 1px solid #505050;
+
+        &_disabled{
+            cursor: not-allowed !important;
+            filter: contrast(0.5);
+        }
+
+        &>li {
+            height: 50px;
+            list-style: none;
+            cursor: pointer;
+
+            &>div {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                height: 100%;
+                color: $white;
+                padding: 0 15px;
+
+                img,
+                svg {
+                    height: 50%;
+                    width: auto;
+                }
+            }
+
+            &:hover {
+                background-color: #2a2a2a;
+            }
+        }
+    }
+
+    &_suggestion {
+        @extend %main-notes;
+        color: $white;
+        margin-top: 6px;
+        line-height: 22px;
+        opacity: 0.5;
+    }
+}

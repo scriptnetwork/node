@@ -1,0 +1,29 @@
+script.tv
+devops tool status: red - KO 82965 Virgin skeleton
+
+20 subsystems:
+    green: 0
+    amber: 0
+      red: 20
+
+Subsystem breakdown:
+     1	dns_soa red KO 82965 Virgin skeleton
+     2	explorer_backend red KO 82965 Virgin skeleton
+     3	L1_crawler red KO 82965 Virgin skeleton
+     4	L1_eth red KO 82965 Virgin skeleton
+     5	L1 red KO 82965 Virgin skeleton
+     6	L1__scriptv red KO 82965 Virgin skeleton
+     7	market__backend red KO 82965 Virgin skeleton
+     8	push_notification__backend red KO 82965 Virgin skeleton
+     9	wallet_api__backend red KO 82965 Virgin skeleton
+    10	www__admin red KO 82965 Virgin skeleton
+    11	www__backend_db red KO 82965 Virgin skeleton
+    12	www__backend red KO 82965 Virgin skeleton
+    13	www__chat red KO 82965 Virgin skeleton
+    14	www__cms red KO 82965 Virgin skeleton
+    15	www__explorer red KO 82965 Virgin skeleton
+    16	www__faucet red KO 82965 Virgin skeleton
+    17	www red KO 82965 Virgin skeleton
+    18	www__status red KO 82965 Virgin skeleton
+    19	www__token red KO 82965 Virgin skeleton
+    20	www__wallet red KO 82965 Virgin skeleton

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+### WhiteBox test template
+## How to use:
+## 1.- Place a modified copy of this file as  \${subsystem}/.dotool/test_target_whitebox, chmod +x.
+## 2.- This file will be sourced as root in the target test machine just after the service corresponding to this subsystem is brought up on service/duty.
+## 3.- It is meant to contain tests that can be used to monitor any aspect of the running system.
+## 4.- Tied to the mere existance of this file a light/led will appear in http://make.script.tv/current 
+## 5.- Interface: The result of your algorithm must inform the circuitery on opinion about something you can say in one line that can result in block or cause disruptions in the deployment process, as leds influence the decision making of the monitoring agent.:
+## 6.- Spec: set 3 variables after being sourced, as in the example.
+## 6.1.- KO_line format KO/OK code.
+##   OK             (equivalent to int 0; nullptr)
+##   KO <code> <status line>
+##      code is 5 digits, randomly typed; Status line is information about the failure.
+##      random code helps tracing run-time events to code.
+## 6.2.-test_led_headline Line will go verbatim to led panel.
+## 6.3.-test_led Set the light, set to one of off|red|amber|green 
+
+# Function to execute curl command
+execute_curl() {
+    curl -X POST -H 'Content-Type: application/json' --data "$2" "$1"
+}
+
+function info_leds {
+	echo "I am a whitebox test invoked in a $(uname -a) machine."
+}
+
+function entry_point {
+    SCRIPT_RPC_URL="http://node.testnet.km.script.tv:11173/rpc"
+    ETH_RPC_URL="http://eth.node.testnet.km.script.tv:11174/rpc"
+
+    # Script RPC commands
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetVersion","params":[],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetAccount","params":[{"address":"0x55aab217f5e0c9e11099c530b55feb150f2f757a"}],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetBlock","params":[{"hash":"0x791721a62b88139b840440fb2c42e56006edd271ef68872a27923f32656f28d2", "include_eth_tx_hashes":false}],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetBlockByHeight","params":[{"height":"3", "include_eth_tx_hashes":false}],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetTransaction","params":[{"hash":"0xe1bdda19de7dd9e7eee850ace0d02c4431ac22862d1b56b6c66227a5e55ecfbf"}],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.GetPendingTransactions","params":[],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.BroadcastRawTransaction","params":[{"tx_bytes":"02f8a4c78085e8d4a51000f86ff86d942e833968e5bb786ae419c4d13189fb081cc43babd3888ac7230489e800008901158e46f1e875100015b841c2daae6cab92e37308763664fcbe93d90219df5a3520853a9713e70e734b11f27a43db6b77da4f885213b45a294c2b4c74dc9a018d35ba93e5b9297876a293c700eae9949f1233798e905e173560071255140b4a8abd3ec6d3888ac7230489e800008901158e460913d00000"}],"id":1}'
+    execute_curl "$SCRIPT_RPC_URL" '{"jsonrpc":"2.0","method":"script.BroadcastRawTransactionAsync","params":[{"tx_bytes":"02f8a4c78085e8d4a51000f86ff86d942e833968e5bb786ae419c4d13189fb081cc43babd3888ac7230489e800008901158e46f1e875100016b841393e2eba6241482098cf11ef4dd869209d7ebd716397f3c862ca5b762bbf403006b1fa009786102383c408cabdf7450c1c73d4dd4a20d3b48a39a88ffe0ecb0e01eae9949f1233798e905e173560071255140b4a8abd3ec6d3888ac7230489e800008901158e460913d00000"}],"id":1}'
+
+    # Ethereum RPC commands
+    execute_curl "$ETH_RPC_URL" '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":67}'
+    execute_curl "$ETH_RPC_URL" '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}'
+    execute_curl "$ETH_RPC_URL" '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":83}'
+    execute_curl "$ETH_RPC_URL" '{"jsonrpc":"2.0","method":"eth_getBalance","params":["0xc15149236229bd13f0aec783a9cc8e8059fb28da", "latest"],"id":1}'
+    echo "KO tests not integrated"
+
+}

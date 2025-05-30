@@ -1,0 +1,170 @@
+@import "../../../../styles/colors.scss";
+@import "../../../../styles/typography.scss";
+@import "../../../../styles/breakPoints.scss";
+@import "../../../../styles/fonts.scss";
+
+.withdrawStake {
+    &>div {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+        align-items: center;
+
+        @include respond-to(md) {
+            gap: 12px;
+        }
+
+        @include respond-to(sm) {
+            gap: 8px;
+        }
+    }
+
+    h1 {
+        @extend %main-heading;
+        color: $yellow-dark;
+        font-weight: 500;
+
+        @include respond-to(sm) {
+            color: $yellow-dark;
+        }
+
+        @include respond-to(xs) {
+            color: $yellow-dark;
+        }
+    }
+
+    @include respond-to(sm) {
+
+        input,
+        button {
+            height: 50px !important;
+        }
+
+        label {
+            margin-bottom: 0.3rem !important;
+        }
+    }
+
+    @include respond-to(xs) {
+
+        input,
+        button {
+            height: 40px !important;
+        }
+
+        label {
+            margin-bottom: 0.2rem !important;
+        }
+    }
+
+    &_stepOne {
+        &_node {
+            display: flex;
+            align-items: flex-end;
+            width: 100%;
+
+            label {
+                @extend %main-paragraph;
+                color: $white;
+                padding: 10px 0 5px 0;
+            }
+
+            button {
+                width: max-content;
+                white-space: nowrap;
+                height: 50px;
+            }
+        }
+    }
+
+    &_stepTwo {
+        width: 100%;
+        color: $white;
+        gap: 0px !important;
+
+        h2 {
+            @extend %main-heading;
+            margin-top: 10px;
+        }
+
+        &>div {
+            width: 100%;
+        }
+
+        p {
+            @extend %main-paragraph;
+            font-weight: 500;
+        }
+
+        &>p {
+            margin: 20px 0;
+        }
+
+        &_line {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+            height: 60px;
+            border-top: 1px solid $white;
+            border-collapse: collapse;
+
+            &:last-child {
+                border-bottom: 1px solid $white;
+                margin-bottom: 80px;
+            }
+        }
+
+        h3 {
+            @extend %main-paragraph;
+            font-weight: 500;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        input {
+            margin-bottom: 16px;
+        }
+
+        @include respond-to(sm) {
+            &_line {
+                height: 40px;
+
+                &:last-child {
+                    border-bottom: 1px solid $white;
+                    margin-bottom: 20px;
+                }
+            }
+        }
+
+        @include respond-to(xs) {
+            &_line {
+                height: 23px;
+
+                &:last-child {
+                    border-bottom: 1px solid $white;
+                    margin-bottom: 10px;
+                }
+
+                p {
+                    text-align: right;
+                }
+
+                &>p:last-child {
+                    width: 60%;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+    }
+
+    &_error{
+        @extend %main-notes;
+        color: $error;
+        font-weight: 500;
+        margin-top: 10px;
+    }
+}

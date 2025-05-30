@@ -1,0 +1,62 @@
+@import "../../../styles/fonts.scss";
+@import "../../../styles/colors.scss";
+@import "../../../styles/typography.scss";
+@import "../../../styles/breakPoints.scss";
+
+.button {
+    width: 100%;
+    font-family: $outfit;
+    @extend %main-paragraph;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &:hover {
+        cursor: pointer;
+        opacity: 0.8;
+    }
+}
+
+.small {
+    padding: 10px 30px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.big {
+    height: 50px;
+    padding: 0 30px;
+    border-radius: 6px;
+    font-weight: 700;
+
+    @include respond-to(sm) {
+        height: 50px !important;
+    }
+
+    @include respond-to(xs) {
+        height: 40px !important;
+    }
+}
+
+.yellow {
+    background-color: $yellow-light;
+    color: $black;
+}
+
+.black {
+    color: $white;
+    background-color: $black;
+}
+
+.white {
+    color: $black;
+    background-color: $white;
+}
+
+.transparent {
+    background-color: transparent;
+    color: $white;
+    border: 1px solid $white;
+}
